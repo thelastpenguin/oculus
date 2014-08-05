@@ -1,9 +1,8 @@
 oc.commands = {};
-oc.getCommand = oc.fn_ReadOnly( oc.commands );
 
 -- STUBS REMOVE LATER
 function oc.checkPerm( pl, perm )
-	return true;
+	return oc.p(pl):getPerm(perm) and true or false;
 end
 function oc.canTarget( pl, targ )
 	return true;
@@ -37,7 +36,7 @@ function oc.command( category, command, action )
 	c.category = category;
 	c.action = action;
 	c.command = command;
-	c.perm = 'cmd_'..command;
+	c.perm = 'cmd.'..command;
 	
 	c.params = {};
 	
@@ -153,6 +152,10 @@ function oc.RunCommand( pl, meta, args )
 	local succ = oc.hook.Call( 'ProcessCMDArgs', pl, params, args );
 	if succ == false then return end
 	
+	if #params > #args then
+		oc.notify(pl, oc.cfg.color_error, 'PARSE ERROR: too few arguements. Got ' .. #args .. ' expected ' .. #params );
+		return ;
+	end
 	local processed = {};
 	for i = 1, #args do
 		local arg = args[i];
@@ -160,14 +163,14 @@ function oc.RunCommand( pl, meta, args )
 		local pmeta = oc.getParamType( param.type );
 		PrintTable( pmeta );
 		if not pmeta then
-			oc.notify( pl, Color(255,0,0),'CONTACT A CODER! PARAM TYPE: '..param.type..' does not exist! This should never happen.' );
+			oc.notify( pl, oc.cfg.color_error,'CONTACT A CODER! PARAM TYPE: '..param.type..' does not exist! This should never happen.' );
 			return ;
 		end
 		
 		local succ, narg = pmeta.parse( arg, param );
 		
 		if not succ then
-			oc.notify( pl, Color(255,155,0), 'Failed to parse arg ('..i..') '..narg..'. ', narg );
+			oc.notify( pl, oc.cfg.color_error, 'PARSE ERROR: Failed to parse arg ('..i..') '..narg..'. ', narg );
 			return ;
 		end
 		
@@ -176,15 +179,15 @@ function oc.RunCommand( pl, meta, args )
 	
 	local succ, err = pcall( meta.action, pl, processed );
 	if not succ then
-		oc.notify( pl, Color(255,155,0), 'ERROR ON COMMAND: ', err );
+		oc.notify( pl, oc.cfg.color_error, 'ERROR ON COMMAND: ', err );
 		return ;
 	end
 end
 
-
+-- auto fill in default values
 oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
 	for k,v in pairs( params )do
-		if v.default and not args[k] then args[k] = v.default end
+		if v.default and not args[k] then args[k] = isfunction(v.default) and v.default(pl, v, args[k]) or v.default end
 	end
 end);
 
@@ -216,7 +219,7 @@ end);
 
 -- STRING
 local TYPE = {};
-TYPE.parse = function( arg ) return true, arg end
+TYPE.parse = function( arg ) return arg:len() ~= 0, arg end
 oc.addParamType( 'string', TYPE );
 
 oc.fancy_formats['S'] = function( arg ) 
@@ -266,17 +269,24 @@ end
 
 local TYPE = {};
 local function findPlayersByName( arg )
-	local targ = {};
-	local searchfor = string.lower( arg );
-	for k, v in pairs( player.GetAll() )do
-		local n = string.lower( v:Name() );
-		if n == searchfor then
-			return {v};
-		elseif n:find( searchfor ) then
-			targ[#targ+1] = v;
+	if arg == '*' then
+		return player.GetAll();
+	else
+		local targ = {};
+		local searchfor = string.lower( arg );
+		local n;
+		
+		for k, v in pairs( player.GetAll() )do
+			n = string.lower( v:Name() );
+			if n == searchfor or v:SteamID() == searchfor then
+				return {v};
+			elseif n:find( searchfor ) then
+				targ[#targ+1] = v;
+			end
 		end
+		
+		return targ;
 	end
-	return targ;
 end
 
 TYPE.parse = oc.fn_Compose( 
