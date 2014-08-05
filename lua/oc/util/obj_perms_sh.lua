@@ -2,16 +2,16 @@ local string_find = string.find ;
 local string_sub = string.sub ;
 
 
-local function nodeAddPerm( node, perm )
+local function nodeAddPerm( root, node, perm )
 	local dot = string_find(perm,'.', 1, true);
 	if dot then
 		local key = string_sub(perm, 1, dot-1);
 		local rest = string_sub(perm, dot+1 );
 		if not node[key] then
-			node[key] = {};
+			node[key] = {root=root};
 			node[#node+1] = key;
 		end
-		nodeAddPerm(node[key], rest);
+		nodeAddPerm(root, node[key], rest);
 	else
 		if not node[perm] then
 			node[perm] = {};
@@ -61,30 +61,17 @@ local tree_mt = {};
 tree_mt.__index = tree_mt;
 function tree_mt:getPerm( perm )
 	local vals = nodeGetPerm(self.root,perm);
-	if vals then
-		local out = {};
-		for k,v in ipairs(vals)do
-			out[k] = v;
-		end
-		return out;
-	else
-		return false;
-	end
+	self.cache[perm] = vals;
+	return vals or false;
 end
-
-function tree_mt:delPerm( perm )
-	nodeDelperm(self.root, perm);
-end
-
-function tree_mt:addPerm
 
 function oc.perm( perms )
 	local node = {};
 	for _, perm in pairs(perms)do
-		nodeAddPerm(node,perm);
+		nodeAddPerm(self, node,perm);
 	end
 	return setmetatable({
 		root = node,
-		perms = perms
+		cache = {}
 	}, tree_mt);
 end

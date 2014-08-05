@@ -10,3 +10,5 @@ oc.cfg.color_time = Color(59,255,59);
 
 
 oc.cfg.serverid = 1;
+
+oc.cfg.group_user = 128;

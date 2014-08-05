@@ -5,7 +5,7 @@ local data = oc.data;
 
 -- ESTABLISH CONNECTION
 if not oc._db then
-	oc._db = pmysql.newdb( "lastpenguin.com", "penguinwebhost", "7pxuA5JGUrehxP3", "penguinwebhost_oculus", 3306 );
+	oc._db = pmysql.newdb( "lastpenguin.com", "penguinwebhost", "pE2SGHXU3eST9qa", "penguinwebhost_oculus", 3306 );
 end
 
 -- LOCALS
@@ -85,6 +85,12 @@ do
 	function oc.data.groupsGetAll(callback)
 		return db:query('SElECT * FROM oc_groups', callback);
 	end
+	function oc.data.getGroupIds(callback)
+		return db:query('SELECT g_id FROM oc_groups', callback);
+	end
+	function oc.data.groupGetById( g_id, callback )
+		return db:query_ex('SELECT * FROM oc_groups WHERE g_id=?', {g_id}, callback);
+	end
 	
 	function oc.data.groupCreate( sv_id, g_id, perm, callback )
 		return db:query_ex('REPLACE INTO oc_groups (g_inherits,g_immunity,group_name,color)VALUES(?,?,\'?\',?)',{sv_id,g_id,perm,oc.bit.encodeColor(color_white)}, function()
@@ -99,7 +105,7 @@ do
 		end);
 	end
 	
-	function oc.data.groupAddPerm( sv_id, g_id, perm, callback )
+	function oc.data.groupAddPerm( sv_id, g_id, perm, callback )	
 		db:query_ex('REPLACE INTO oc_group_perms VALUES(?,?,\'?\')',{sv_id, g_id, perm}, callback);
 	end
 	function oc.data.groupDelPerm( sv_id, g_id, perm, callback )
