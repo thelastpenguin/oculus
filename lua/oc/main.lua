@@ -51,11 +51,13 @@ print();oc.LoadMsg('\nREQUIRING DEPENDENCIES\n');
 require 'pon';
 require 'async';	
 require 'rpc';
+require 'pnet';
 (SERVER and require or xfn.noop)('pmysql')
 
 -- LIBRARIES
 print();oc.LoadMsg( '\nLIBRARIES\n' );
 oc.include_sh 'lib/hook_sh.lua' 'LIB: hooks';
+oc.include_sh 'lib/net_sh.lua' 'LIB: net';
 
 print();oc.LoadMsg( '\nUTILS\n' );
 oc.include_sh 'util/stringutil.lua' 'UTIL: string util';

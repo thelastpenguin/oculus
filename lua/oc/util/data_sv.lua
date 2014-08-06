@@ -60,8 +60,6 @@ function oc.data.userFetchPerms( svid, uid, done )
 		xfn.map( rows, function(row)
 			return row.perm;
 		end);
-		oc.print('loaded user perms for uid: '..uid);
-		PrintTable( rows );
 		done(rows);
 	end);
 end
@@ -72,6 +70,18 @@ end
 
 function oc.data.userDelPerm( svid, uid, perm, done )
 	return db:query_ex("DELETE FROM oc_user_perms WHERE sv_id=? AND u_id=? AND perm LIKE '?%'", {svid, uid, perm}, done );
+end
+
+function oc.data.userInitVars( svid, uid, done )
+	return db:query_ex("REPLACE INTO oc_user_vars VALUES(?, ?, '?')", {svid, uid, pon.encode({})}, done);
+end
+
+function oc.data.userFetchVars( svid, uid, done )
+	return db:query_ex("SELECT data FROM oc_user_vars WHERE sv_id=? AND u_id=?", {svid, uid}, done );	
+end
+
+function oc.data.userUpdateVars( svid, uid, data, done )
+	return db:query_ex("UPDATE oc_user_vars SET data='?' WHERE sv_id=? AND u_id=?", {data, svid, uid}, done);	
 end
 
 --

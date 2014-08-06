@@ -5,7 +5,7 @@ function oc.checkPerm( pl, perm )
 	return oc.p(pl):getPerm(perm) and true or false;
 end
 function oc.canTarget( pl, targ )
-	return true;
+	return oc.p(pl):getImmunity() >= oc.p(targ):getImmunity();
 end
 
 

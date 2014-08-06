@@ -19,3 +19,7 @@ hook.Add('PlayerSay', 'oc.hook', function( ... )
 end);
 oc.hook.Add('PlayerSay', oc.HookPluginField('PlayerSay'));
 
+hook.Add('OnEntityCreated', 'oc.OnEntityCreated', function(ent)
+	oc.hook.Call('OnEntityCreated', ent);
+end);
+oc.hook.Add('OnEntityCreated', oc.HookPluginField('OnEntityCreated'));
