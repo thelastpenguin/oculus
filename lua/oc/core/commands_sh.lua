@@ -2,9 +2,11 @@ oc.commands = {};
 
 -- STUBS REMOVE LATER
 function oc.checkPerm( pl, perm )
+	if not IsValid(pl) and pl:EntIndex() < 0 then return true end
 	return oc.p(pl):getPerm(perm) and true or false;
 end
 function oc.canTarget( pl, targ )
+	if not IsValid(pl) and pl:EntIndex() < 0 then return true end
 	return oc.p(pl):getImmunity() >= oc.p(targ):getImmunity();
 end
 
@@ -19,7 +21,6 @@ function oc.addParamType( typeid, table )
 	paramtypes[ typeid ] = table;
 end
 oc.getParamType = oc.fn_ReadOnly( paramtypes );
-
 
 
 /* ======================================================================
@@ -114,10 +115,10 @@ oc.hook.Add( 'PlayerSay', function( pl, text )
 		if oc.commands[ text_cmd ] then
 			oc.print("RUNNING COMMAND: "..text_cmd.." ARG STR: "..text_arg );
 			oc.RunChatCommand( pl, text_cmd, text_arg );
+			return false;
 		else
 			oc.print("COMMAND NOT FOUND! ", text_cmd );
 		end
-		
 	end
 end);
 
@@ -127,7 +128,7 @@ function oc.RunChatCommand( pl, text_cmd, text_arg )
 	local perm = meta:getPerm( );
 	
 	if not oc.checkPerm( pl, perm ) then
-		oc.notify( pl, Color(255,0,0), 'You do not have permission \''..perm..'\'.' );
+		oc.notify( pl, oc.cfg.color_error, 'You do not have permission \''..perm..'\'.' );
 		return ;
 	end
 	
@@ -138,6 +139,132 @@ function oc.RunChatCommand( pl, text_cmd, text_arg )
 end
 
 
+/* ======================================================================
+	 	CONSOLE COMMAND EXECUATION
+	 ====================================================================== */
+function oc.RunConCommand( pl, text_cmd, args )
+	local meta = oc.commands[ text_cmd ];
+	local perm = meta:getPerm( );
+	
+	if not oc.checkPerm( pl, perm ) then
+		oc.notify( pl, oc.cfg.color_error, 'You do not have permission \''..perm..'\'.' );
+		return ;
+	end
+	
+	oc.notify( pl, 'You ran command '..text_cmd );
+	
+	oc.RunCommand( pl, meta, args );
+end
+
+
+concommand.Remove('oc');
+concommand.Add('oc', function(pl, _, args)
+	if #args == 0 then
+		oc.notify(pl, oc.cfg.color_error, 'Command expected got nothing');
+		return ;
+	end
+	local cmd = table.remove(args, 1):lower();
+	local cmdMeta = oc.commands[cmd];
+	if not cmdMeta then
+		oc.notify(pl, oc.cfg.color_error, 'Command \''..cmd..'\' not found');
+		return ;
+	end
+	
+	oc.RunConCommand(pl, cmd, args);
+end, function(pl, text_arg)
+	
+	-- properly descide which arguement we are currently intrested in
+	local rawArgs = oc.ParseString(text_arg);
+	
+	local argIndex = #rawArgs
+	local arg
+	if text_arg[text_arg:len()] == ' ' then
+		argIndex = argIndex + 1;
+		arg = nil;
+	else
+		arg = table.remove(rawArgs, #rawArgs);
+	end
+	
+	local res = {};
+	
+	if argIndex == 0 or argIndex == 1 then
+		if arg then arg = arg:lower() end
+		for cmdName,_ in pairs(oc.commands)do
+			-- if arg is nil everything passes
+			if not arg or cmdName:find(arg) then
+				table.insert(res, cmdName);
+			end
+		end
+	else
+		-- arguement autocompletion
+		local command = oc.commands[rawArgs[1] and rawArgs[1]:lower()];
+		if not command then
+			return '<command not found>';
+		else
+			local paramMeta = command:getParam(argIndex-1);
+			if not paramMeta then return {'<too many params>'} end
+			
+			local options;
+			if paramMeta.options then
+				options = paramMeta.options
+			else
+				local typeMeta = oc.getParamType(paramMeta.type);
+				if typeMeta and typeMeta.autocomplete then
+					options = typeMeta.autocomplete
+				end
+			end
+			
+			if options then
+				-- resolve options to an array
+				if isfunction(options) then
+					res = options() or {}
+				else
+					res = options;
+				end
+				
+				-- filter options
+				if arg then
+					xfn.filter(res, function(opt)
+						return opt:find(arg)
+					end);
+				end
+			end
+			
+			-- if there is no arg then show help
+			if not arg and paramMeta.help then
+				table.insert(res, 1, 'tip: ' .. paramMeta.help);
+			end
+			
+			if #res == 0 then
+				if arg then table.insert(res, arg) end
+				table.insert(res, '<'..(paramMeta.help or 'no suggestions')..'>');
+			end
+			
+		end
+	end
+	
+	do
+		local prefix = {'oc'};
+		for k,v in pairs(rawArgs)do
+			if v:find(' ') then
+				table.insert(prefix, '"'..v..'"')
+			else
+				table.insert(prefix, v);
+			end
+		end
+		prefix = table.concat(prefix, ' ')..' ';
+		
+		xfn.map(res, function(res)
+			if res:find(' ') then 
+				return prefix..'"'..res..'"';
+			else
+				return prefix..res;
+			end
+		end);
+	end
+	
+	return res;
+end);
 
 
 
@@ -161,13 +288,12 @@ function oc.RunCommand( pl, meta, args )
 		local arg = args[i];
 		local param = params[i];
 		local pmeta = oc.getParamType( param.type );
-		PrintTable( pmeta );
 		if not pmeta then
 			oc.notify( pl, oc.cfg.color_error,'CONTACT A CODER! PARAM TYPE: '..param.type..' does not exist! This should never happen.' );
 			return ;
 		end
 		
-		local succ, narg = pmeta.parse( arg, param );
+		local succ, narg = pmeta.parse( arg, param, pl );
 		
 		if not succ then
 			oc.notify( pl, oc.cfg.color_error, 'PARSE ERROR: Failed to parse arg ('..i..') '..narg..'. ', narg );
@@ -289,32 +415,24 @@ local function findPlayersByName( arg )
 	end
 end
 
-TYPE.parse = oc.fn_Compose( 
--- STEP 1: find all players we can.
-function( arg, param )
-	return findPlayersByName( arg ), param ;
-end,
-
--- STEP 2: validate
-oc.fn_IF( function( _, param ) return param.multi or false end ,
--- VALIDATE: multi
-function( targ, param )
-	if #targ == 0 then
+TYPE.parse = function( arg, param, pl )
+	local targets = xfn.filter(findPlayersByName( arg ), 
+		function(other)
+			return oc.canTarget(pl, other)
+		end);
+	
+	if #targets == 0 then 
 		return false, 'No targets found';
-	else
-		return true, targ;
 	end
-end,
--- VALIDATE: single
-function( targ, param )
-	if #targ == 0 then
-		return false, 'No targets found';
-	elseif #targ > 1 then
+	
+	if param.multi then
+		return true, targets;
+	elseif #targets ~= 1 then
 		return false, 'Too many targets';
 	else
-		return true, targ[1];
+		return true, targets[1];
 	end
-end));
+end
 
 oc.addParamType( 'player', TYPE );
 oc.fancy_formats['P'] = function( players )
@@ -339,11 +457,47 @@ oc.fancy_formats['P'] = function( players )
 	function addName( index )
 		local ply = players[index];
 		if type( ply ) == 'Player' then
-			return team.GetColor( ply:Team() ) or color_white, ply:Name(), addSep( index ) ;
+			if not IsValid(ply) then
+				return Color(0,0,0), '(Console)'
+			else
+				return team.GetColor( ply:Team() ) or color_white, ply:Name(), addSep( index ) ;
+			end
 		elseif ply then
 			return addName( index + 1 );
 		end
 	end
 	
 	return addName( 1 );
+end
+
+TYPE.autocomplete = function(param)
+	return xfn.map(player.GetAll(), function(pl) return pl:Name() end);
+end
+
+
+
+-- GROUP
+local TYPE = {};
+TYPE.parse = function( str, param )
+	local id = tonumber(str);
+	if id and oc.g(id) then
+		return true, oc.g(id);
+	else
+		for k,v in pairs(oc.groups)do
+			if v.name == str then return true, v end
+		end
+		return false
+	end
+end
+TYPE.autocomplete = function(param)
+	local res = {};
+	for k,v in pairs(oc.groups)do
+		res[#res+1] = v.name;
+	end
+	return res
+end
+
+oc.addParamType( 'group', TYPE );
+oc.fancy_formats['G'] = function( arg )
+	return arg.color, arg.name;
 end
