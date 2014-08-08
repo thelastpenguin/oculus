@@ -75,3 +75,10 @@ function oc.perm( perms )
 		cache = {}
 	}, tree_mt);
 end
+
+function oc.permAdopt(tree)
+	return setmetatable({
+		root = tree,
+		cache = {}
+	}, tree_mt);
+end

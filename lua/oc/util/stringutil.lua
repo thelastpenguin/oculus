@@ -8,7 +8,7 @@ function oc.ParseString( str )
 		ind = sInd + 1;
 		local quoted = str:sub( sInd, sInd ):match( '["\']' ) and true or false;
 		local fInd, finish = string.find( str, quoted and '["\']' or '[%s]', ind );
-		if not fInd then break end
+		if not fInd then fInd = string.len(str) end
 		ind = fInd + 1;
 		local str = str:sub( quoted and sInd + 1 or sInd, fInd - 1 )
 		res[#res+1] = str;

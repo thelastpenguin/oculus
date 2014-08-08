@@ -97,10 +97,15 @@ function oc.data.groupGetById( g_id, callback )
 	return db:query_ex('SELECT * FROM oc_groups WHERE g_id=?', {g_id}, callback);
 end
 
-function oc.data.groupCreate( sv_id, g_id, perm, callback )
-	return db:query_ex('REPLACE INTO oc_groups (g_inherits,g_immunity,group_name,color)VALUES(?,?,\'?\',?)',{sv_id,g_id,perm,oc.bit.encodeColor(color_white)}, function()
+function oc.data.groupCreate(g_id, groupname, callback )
+	return db:query_ex('REPLACE INTO oc_groups (g_inherits,g_immunity,group_name,color)VALUES(?,?,\'?\',?)',{g_id,groupname,oc.bit.encodeColor(color_white)}, function()
 		callback();
 	end);
+end
+function oc.data.groupUpdate( g_id, g_inherits, g_immunity, group_name, color, callback)
+	return db:query_ex('REPLACE INTO oc_groups (g_inherits,g_immunity,group_name,color)VALUES(?,?,\'?\',?)', {
+		g_id, g_inherits, g_immunity, group_name, oc.bit.encodeColor(color)
+	}, callback);
 end
 
 function oc.data.groupFetchPerms( sv_id, g_id, callback )

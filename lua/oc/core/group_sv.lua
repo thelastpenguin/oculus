@@ -1,9 +1,14 @@
 oc.group = {};
-oc.group.groups = {};
-local groups = oc.group.groups;
+oc.groups = {};
+local groups = oc.groups;
 
 local group_mt = {};
 group_mt.__index = group_mt;
+
+
+function oc.g(groupid)
+	return groups[groupid];
+end
 
 --
 -- RESYNC GROUPS WITH MYSQL
@@ -47,14 +52,41 @@ function oc.group.loadId(g_id)
 	if group.gid then
 		oc.LoadMsg(2, 'Loaded group: ' .. group.gid.. ' - ' .. group.name);
 		groups[g_id] = setmetatable(group, group_mt);
+		
+		groups[g_id]:sync();
+		
 		-- fetch permissions
 		group:fetchPerms(true, xfn.noop):wait();
-		group:fetchPerms(false, xfn.noop):wait(); 
+		group:fetchPerms(false, xfn.noop):wait();
 		return group;
-	else 
+	else
 		oc.LoadMsg(2, 'ERROR! FAILED TO LOAD GROUP: ' .. g_id);
 	end
 	
+end
+
+function group_mt:setColor(col, callback)
+	self.color = col;
+	self:sync();
+	return self:updateDb(callback);
+end
+function group_mt:setImmunity(immun, callback)
+	self.immunity = immun;
+	self:sync();
+	return self:updateDb(callback);
+end
+function group_mt:setName(name, callback)
+	self.name = name;
+	self:sync();
+	return self:updateDb(callback);
+end
+function group_mt:setInherits(group, callback)
+	self.inherits = group
+	return self:updateDb(callback);
+end
+
+function group_mt:updateDb(callback)
+	return oc.data.groupUpdate(self.gid, self.inherits and self.inherits.gid or 0, self.immunity, self.name, self.color, callback);	
 end
 
 function group_mt:fetchPerms(isGlobal, done)
@@ -68,13 +100,14 @@ function group_mt:fetchPerms(isGlobal, done)
 		else
 			self.serverPerms = oc.perm(data);
 		end
+		self:syncPerms(isGlobal);
 		done();
 	end);
 end
 
 function group_mt:addPerm(perm, isGlobal, done)
 	return oc.data.groupAddPerm( isGlobal and 0 or oc.data.svid, self.gid, perm, function()
-		self:fetchPerms( isGlobal, xfn.fn_deafen(done or xfn.noop));	
+		self:fetchPerms( isGlobal, xfn.fn_deafen(done or xfn.noop));
 	end);
 end
 function group_mt:addPermNumber(perm, value, isGlobal, done)
@@ -106,6 +139,7 @@ function group_mt:delPerm(perm, isGlobal, done)
 	for _, sub in ipairs(subs)do
 		self:delPerm(perm..'.'..sub, isGlobal, amIDone);
 	end
+	self:syncPerms();
 end
 
 function group_mt:getPerm(perm)
@@ -121,9 +155,40 @@ function group_mt:getPermNumber(perm)
 	return res and res[1] and tonumber(res[1], 16);
 end
 
-
-function oc.g(groupid)
-	return groups[groupid];
+util.AddNetworkString('oc.g.syncMeta');
+util.AddNetworkString('oc.g.syncPerms');
+function group_mt:sync(pl)
+	dprint('sending group '..self.gid..'\'s meta data.');
+	net.Start('oc.g.syncMeta');
+		net.WriteUInt(self.gid, 32);
+		net.WriteUInt(self.immunity, 32)
+		net.WriteUInt(oc.bit.encodeColor(self.color), 32);
+		net.WriteUInt(self.inherits and self.inherits.gid or 0, 32);
+		net.WriteString(self.name);
+	net.Send(pl or player.GetAll());
+end
+function group_mt:syncPerms(isGlobal, pl)
+	dprint('sending group '..self.gid..'\'s perms');
+	net.Start('oc.g.syncPerms')
+		net.WriteUInt(isGlobal and 1 or 0, 8);
+		net.WriteUInt(self.gid, 32);
+		net.WriteString(pon.encode(isGlobal and self.globalPerms.root or self.serverPerms.root));
+	net.Send(pl or player.GetAll());
 end
 
+
+
 oc.group.sync();
+
+
+oc.hook.Add('PlayerInitialSpawn', function(pl)
+	dprint('player initial spawned');
+	net.waitForPlayer(pl, function()
+		dprint('syncing groups to player ' .. pl:Name());
+		for k,v in pairs(groups)do
+			v:sync(pl);
+			v:syncPerms(true, pl);
+			v:syncPerms(false, pl);
+		end
+	end);
+end);

@@ -52,12 +52,12 @@ require 'pon';
 require 'async';	
 require 'rpc';
 require 'pnet';
+require 'dprint';
 (SERVER and require or xfn.noop)('pmysql')
 
 -- LIBRARIES
 print();oc.LoadMsg( '\nLIBRARIES\n' );
 oc.include_sh 'lib/hook_sh.lua' 'LIB: hooks';
-oc.include_sh 'lib/net_sh.lua' 'LIB: net';
 
 print();oc.LoadMsg( '\nUTILS\n' );
 oc.include_sh 'util/stringutil.lua' 'UTIL: string util';
@@ -68,6 +68,7 @@ oc.include_sh 'util/obj_perms_sh.lua' 'UTIL: perms';
 
 print();oc.LoadMsg( '\nCORE\n' );
 oc.include_sv 'core/group_sv.lua' 'CORE: group sv';
+oc.include_cl 'core/group_cl.lua' 'CORE: group cl';
 oc.include_sv 'core/player_sv.lua' 'CORE: player sv';
 oc.include_cl 'core/player_cl.lua' 'CORE: player cl';
 oc.include_sh 'core/commands_sh.lua' 'CORE: commands';

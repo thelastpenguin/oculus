@@ -27,6 +27,19 @@ if SERVER then
 		net.Start( 'oc_notify' );
 			writemessage( arg );
 		net.Send( pl );
+		
+		-- properly output to console
+		if type(pl) == 'Player' and not IsValid(pl) then
+			for k,v in pairs(arg)do
+				if type(v) == 'string' then
+					Msg(v);
+				elseif type(v) == 'Player' then
+					Msg(v:Name());
+				end
+			end
+			Msg('\n');
+		end
+		
 	end
 	function oc.notify( pl, ... )
 		local arg = {...}

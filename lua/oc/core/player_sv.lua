@@ -31,7 +31,7 @@ function player_mt:load(done)
 					oc.data.userCreate(self.player, function()
 						oc.data.userFetchID(self.player:SteamID(), function(uid)
 							self.uid = uid;
-							oc.print('fetched player uid: '..uid);
+							dprint('fetched player uid: '..uid);
 							done();
 						end);	
 					end);
@@ -67,9 +67,15 @@ function player_mt:load(done)
 		self.ready = true;
 		self:loadInheritance();
 		
-		net.waitForPlayer(self.player, function()
-			self:syncAllVars();	
-		end);
+		if self.player then
+			dprint('loaded player ' .. self.player:Name());
+			net.waitForPlayer(self.player, function()
+				dprint('syncing player vars for ' .. self.player:Name());
+				self:syncAllVars();
+				self:syncPermTree(true);
+				self:syncPermTree(false);
+			end);
+		end
 		
 		done();
 	end);
@@ -78,7 +84,7 @@ end
 -- LOADS INHERITED PERMISSIONS
 function player_mt:loadInheritance()
 	-- load primary usergroup
-	self.primaryGroup = oc.g(self:getPermNumber('group.primary') or oc.cfg.group_user);
+	self.primaryGroup = oc.g(self:getPermNumber('group.primary')) or oc.g(oc.cfg.group_user);
 	if self.player then
 		self.player:SetNWString('UserGroup', self.primaryGroup.name);
 	end
@@ -96,9 +102,9 @@ function player_mt:loadInheritance()
 end
 
 function player_mt:setGroup( group, isGlobal, done )
-	async.series( {
-		xfn.fn_partial(self.delPerm, self, 'group.primary.', isGlobal or false),
-		xfn.fn_partial(self.addPerm, self, 'group.primary.'..group, isGlobal or false),
+	async.series({
+		xfn.fn_partial(self.delPerm, self, 'group.primary', isGlobal or false),
+		xfn.fn_partial(self.setPermNumber, self, 'group.primary', group, isGlobal or false),
 	}, function()
 		self:loadInheritance();
 		if done then done() end
@@ -113,7 +119,7 @@ function player_mt:addGroup( group, isGlobal, done )
 end
 
 function player_mt:delGroup( group, isGlobal, done )
-	self:delPerm( 'group.extra.'..group, isGlobal, function()
+	self:delPerm( string.format('group.extra.%x', group), isGlobal, function()
 		self:loadInheritance();
 		if done then done() end	
 	end);	
@@ -129,13 +135,22 @@ end
 util.AddNetworkString('oc.pl.syncVar');
 function player_mt:fetchVars(done) 
 	return oc.data.userFetchVars( oc.data.svid, self.uid, function(data, err) 
+		
 		if data[1] then
 			self.vars = pon.decode(data[1].data);
 		end
+		
+		if self.player and self.ready then
+			-- if we are refetching after initial load then we should sync our findings
+			net.waitForPlayer(self.player, function()
+				self:syncPermTree();	
+			end);
+		end
+		
 		done(err);
 	end);
 end
-function player_mt:saveVars(done)
+function player_mt:saveVars(done)	
 	self.vars_changed = false;
 	return oc.data.userUpdateVars( oc.data.svid, self.uid, pon.encode(self.vars), done);
 end
@@ -167,6 +182,7 @@ function player_mt:fetchPerms(isGlobal, done)
 		else
 			self.serverPerms = oc.perm(perms);
 		end
+		self:syncPermTree(isGlobal);
 		done();
 	end);
 end
@@ -206,11 +222,12 @@ end
 
 function player_mt:_delPerm(perm, isGlobal, done)
 	return oc.data.userDelPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, function()
-		self:fetchPerms( isGlobal, xfn.fn_deafen(done or xfn.noop));	
+		self:fetchPerms( isGlobal, xfn.fn_deafen(done or xfn.noop));
 	end);
 end
 function player_mt:delPerm(perm, isGlobal, done)
 	local subs = (isGlobal and self.globalPerms or self.serverPerms):getPerm(perm);
+	if not subs then done() return end
 	local count = #subs;
 	if count == 0 then
 		self:_delPerm(perm, isGlobal, done);
@@ -247,15 +264,22 @@ function player_mt:setPermString(perm, value, isGlobal, done)
 end
 function player_mt:setPermNumber(perm, value, isGlobal, done)
 	return self:delPerm(perm, isGlobal, function()
-		self:addPerm(perm..'.'..tonumber(value, 16), isGlobal, done);
-	end);	
+		self:addPerm(string.format('%s.%x', perm, value), isGlobal, done);
+	end);
+end
+
+util.AddNetworkString('oc.pl.syncPermTree');
+function player_mt:syncPermTree(isGlobal)
+	net.Start('oc.pl.syncPermTree');
+		net.WriteUInt(isGlobal and 1 or 0, 8);
+		net.WriteString(pon.encode(isGlobal and self.globalPerms.root or self.serverPerms.root));
+	net.Send(self.player);
 end
 
 
 
-
 oc.hook.Add('PlayerInitialSpawn', function(pl)
-	oc.print('loading player: '..pl:Name());
+	dprint('loading player: '..pl:Name());
 	oc.p(pl);
 	
 	-- sync user variables
@@ -269,7 +293,7 @@ oc.hook.Add('PlayerInitialSpawn', function(pl)
 end);
 
 oc.hook.Add('PlayerDisconnected', function(pl)
-	oc.print('unloading player: '..pl:Name());
+	dprint('unloading player: '..pl:Name());
 	oc.p(pl):saveVars();
 	players[pl] = nil;
 end);
@@ -280,7 +304,7 @@ timer.Create('oc.pl.saveVars', 120, 0, function()
 		if pl.vars_changed then
 			timer.Simple(offset, function()
 				if not IsValid(pl) then return end
-				oc.print('  saved user: '..pl.player:Name());
+				dprint('  saved user: '..pl.player:Name());
 				pl:saveVars();	
 			end);
 			offset = offset + 1;
