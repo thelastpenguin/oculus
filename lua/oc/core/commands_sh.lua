@@ -124,12 +124,12 @@ end
 	 	COMMAND PARSING FROM CHAT
 	 ====================================================================== */
 oc.hook.Add( 'PlayerSay', function( pl, text )
-	if text:sub( 1, 1 ) == '!' then
+	if text:sub( 1, 1 ) == '!' or text:sub( 1, 1 ) == '/' then
 		
 		local cmd = string.match( text, '%a+', 2 );
 		if not cmd then 
 			oc.print("command was not found in text.");
-			return ;
+			return '';
 		end
 		
 		text_cmd = cmd:lower( );
@@ -138,12 +138,14 @@ oc.hook.Add( 'PlayerSay', function( pl, text )
 		if oc.commands[ text_cmd ] then
 			oc.print("RUNNING COMMAND: "..text_cmd.." ARG STR: "..text_arg );
 			oc.RunChatCommand( pl, text_cmd, text_arg );
-			return false;
+			return '';
 		else
 			oc.print("COMMAND NOT FOUND! ", text_cmd );
 		end
+		return '';
 	end
 end);
+
 
 
 function oc.RunChatCommand( pl, text_cmd, text_arg )
