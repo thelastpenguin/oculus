@@ -8,7 +8,7 @@ oc._players = players;
 function oc.p( pl )
 	if players[pl] then
 		return players[pl];
-	else
+	elseif(IsValid(pl))then
 		local new = setmetatable( {player=pl}, player_mt);
 		new.state = 'loading';
 		new:load(xfn.noop);

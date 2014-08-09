@@ -142,28 +142,47 @@ cmd:addParam 'player' { type = 'player', help = 'target player' }
 cmd:addParam 'group' { type = 'group', help = 'secondary group' }
 
 
--- player get secondary groups
+-- player get info
 local cmd = oc.command( 'permissions', 'playerinfo', function( pl, args )
 end)
 cmd:runOnClient(function(args)
 	local pl = args.player;
 	oc.LoadMsg(0, '\nNAME: '..pl:Name());
 	oc.LoadMsg(0, 'GROUP: '..pl:GetNWString('UserGroup', 'unknown')..'\n');
+	
 	local plMeta = oc.p(pl);
 	
-	if plMeta.globalPerms then
-		oc.LoadMsg(0, 'GLOBAL PERMS:\n');
-		local function recurse(depth, tree, perm)
-			for _, sub in ipairs(tree)do
+	if plMeta.groups then
+		for k,v in pairs(plMeta.groups)do
+			oc.LoadMsg(2, 'EXTRA GROUP: '..v.name);	
+		end
+		oc.LoadMsg('\n');
+	end
+	
+	local function printPermTree(tree)
+		local function recurse(depth, _tree, perm)
+			if not perm then return end
+			perm = perm..'.';
+			for _, sub in ipairs(_tree)do
 				oc.LoadMsg(depth, sub);
-				recurse(depth + 2, plMeta.globalPerms:getPerm(perm..'.'..sub));
+				recurse(depth + 2, tree:getPerm(perm..sub), perm..sub);
 			end
 		end
 		
-		for k,v in ipairs(plMeta.globalPerms.root)do
+		for k,v in ipairs(tree.root)do
 			oc.LoadMsg(2, v)
-			recurse(4, plMeta.globalPerms:getPerm(v));
+			recurse(4, tree:getPerm(v), v);
 		end
+	end
+	
+	if plMeta.globalPerms then
+		oc.LoadMsg(0, '\nGLOBAL PERMS:\n');
+		printPermTree(plMeta.globalPerms);
+	end
+	
+	if plMeta.serverPerms then
+		oc.LoadMsg(0, '\nLOCAL PERMS:\n');
+		printPermTree(plMeta.serverPerms);
 	end
 end);
 cmd:setHelp 'print various information about the specified player'

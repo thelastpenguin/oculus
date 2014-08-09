@@ -62,3 +62,6 @@ REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (0,0,'u
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (128,20,'admin',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (129,50,'superadmin',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (130,100,'owner',0);
+
+REPLACE INTO `oc_group_perms` (g_id,sv_id,perm) VALUES (129,0,'legacy.isAdmin')
+REPLACE INTO `oc_group_perms` (g_id,sv_id,perm) VALUES (130,0,'legacy.isSuperAdmin')

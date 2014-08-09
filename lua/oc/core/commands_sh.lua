@@ -155,8 +155,6 @@ function oc.RunChatCommand( pl, text_cmd, text_arg )
 		return ;
 	end
 	
-	oc.notify( pl, 'You ran command '..text_cmd );
-	
 	local args = oc.ParseString( text_arg );
 	oc.RunCommand( pl, meta, args );
 end
@@ -259,13 +257,12 @@ end
 if SERVER then
 	util.AddNetworkString('oc.cmd.runOnClient');
 else
-	net.Receive('cmd.runOnClient', function()
-		print('running and shit');
+	net.Receive('oc.cmd.runOnClient', function()
 		local cmd = net.ReadString();
 		local arg = pon.decode(net.ReadString());
-		local meta = commands[cmd];
+		local meta = oc.commands[cmd];
 		if not meta then return end
-		meta.funcRunOnClient(processed, meta);
+		meta.funcRunOnClient(arg, meta);
 	end);
 end
 
