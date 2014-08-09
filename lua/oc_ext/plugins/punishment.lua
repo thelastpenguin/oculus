@@ -51,7 +51,7 @@ local cmd = oc.command( 'management', 'spectate', function( pl, args )
 end)
 cmd:addParam 'players' { type = 'player', 'multi' }
 
-hook.Add( "Think", "OC.Spectate.Think", function()
+hook.Add( "Think", "oc.spectate.Think", function()
 	for k, v in pairs( specPlayers ) do
 		if ( !k:IsValid() or !v:IsValid() or !k.Spec ) then
 			specPlayers[k] = nil;
@@ -64,31 +64,70 @@ end );
 ----------------------------------------------------------------
 -- Slay                                                       --
 ----------------------------------------------------------------
-local cmd = oc.command( 'management', 'slay', function( pl, args )
-	oc.ForEach( args.players, function( t )
-		if !t:Alive() then
-			oc.notify( pl, oc.cfg.color_error, 'This player is not alive!' );
-			return
-		end
-		t:Kill();
-	end);
-	oc.notify_fancy( player.GetAll(), '#P slayed #P.', pl, args.players );
-end)
-cmd:addParam 'players' { type = 'player', 'multi' }
+local function ragdollPlayer( victim )
+	local ragModel = victim:GetModel()
+	local ragPos = victim:GetPos()
+	local ragAng = victim:GetAngles()
 
-----------------------------------------------------------------
--- Tele                                                       --
-----------------------------------------------------------------
-local cmd = oc.command( 'management', 'tele', function( pl, args )
-	oc.ForEach( args.players, function( t )
-		local trace = pl:GetEyeTrace()
-		if (trace.HitSky) then return end
-		if !t:Alive() then 
-			t:Spawn()
+	local ragObj = ents.Create( "prop_ragdoll" )
+	ragObj:SetModel( ragModel )
+		
+	ragObj:SetPos( ragPos )
+	ragObj:SetAngles( ragAng )
+		
+	ragObj:Spawn()
+		
+	victim:Spectate( OBS_MODE_CHASE )
+	victim:SpectateEntity( ragObj )
+		
+	local ragBones = ragObj:GetPhysicsObjectCount()
+
+	for i = 1, ragBones - 1 do
+		local ragBone = ragObj:GetPhysicsObjectNum( i )
+			
+		if IsValid( ragBone ) then	
+			local ragBonePos, ragBoneAng = victim:GetBonePosition( ragObj:TranslatePhysBoneToBone( i ) ) 
+			ragBone:SetPos( ragBonePos )
+			ragBone:SetAngles( ragBoneAng )
+			
+			ragBone:SetVelocity( ragObj:GetVelocity() )
 		end
-		t:SetPos(trace.HitPos)
-	end);
-	oc.notify_fancy( player.GetAll(), '#P teleported #P.', pl, args.players );
+	end
+
+	local crapDoll = victim:GetRagdollEntity()
+	crapDoll:Remove()
+	return ragObj;
+end
+
+local cmd = oc.command( 'management', 'slay', function( pl, args )
+	-- disolver
+	local targname = "dissolveme"..pl:EntIndex();
+	local drift_dir = Vector(0,0,10); -- make em float up
+	for _, targ in pairs(args.players)do
+		pl:Kill( );
+		local rag = ragdollPlayer(pl);
+		rag:SetKeyValue("targetname",targname)
+		local numbones = rag:GetPhysicsObjectCount()
+		local PhysObj;
+		for bone = 0, numbones - 1 do 
+			PhysObj = rag:GetPhysicsObjectNum(bone)
+			if PhysObj:IsValid()then
+				PhysObj:SetVelocity(PhysObj:GetVelocity()*0.04+drift_dir)
+				PhysObj:EnableGravity(false)
+			end
+		end
+	end
+	
+	local dissolver = ents.Create("env_entity_dissolver")
+	dissolver:SetKeyValue("magnitude",0)
+	dissolver:SetPos(pl:GetPos())
+	dissolver:SetKeyValue("target",targname)
+	dissolver:Spawn()
+	dissolver:Fire("Dissolve",targname,0)
+	dissolver:Fire("kill","",0.5)
+	dissolver:SetKeyValue("dissolvetype", 0);
+	
+	oc.notify_fancy( player.GetAll(), '#P slayed #P.', pl, args.players );
 end)
 cmd:addParam 'players' { type = 'player', 'multi' }
 
@@ -96,19 +135,27 @@ cmd:addParam 'players' { type = 'player', 'multi' }
 -- Mute Voice                                                --
 ----------------------------------------------------------------
 local cmd = oc.command( 'management', 'mutevoice', function( pl, args )
+	local players_muted, players_unmuted = {}, {};
 	oc.ForEach( args.players, function( t )
-		if !t.VoiceMuted then
+		if not t.VoiceMuted then
+			table.insert(players_muted, t);
 			t.VoiceMuted = true;
-			oc.notify_fancy( player.GetAll(), '#P muted #Ps voice', pl, args.players );
 		else
+			table.insert(players_unmuted, t);
 			t.VoiceMuted = nil;
-			oc.notify_fancy( player.GetAll(), '#P unmuted #Ps voice', pl, args.players );
 		end
 	end);
+	
+	if #players_unmuted > 0 then
+		oc.notify_fancy( player.GetAll(), '#P unmuted #P', pl, players_unmuted);
+	end
+	if #players_muted > 0 then
+		oc.notify_fancy( player.GetAll(), '#P muted #P', pl, players_muted);
+	end
 end)
 cmd:addParam 'players' { type = 'player', 'multi' }
 
-hook.Add( "PlayerCanHearPlayersVoice", "OC.PlayerCanHearPlayersVoice.MuteVoice", function( listener, talker )
+hook.Add( "PlayerCanHearPlayersVoice", "oc.PlayerCanHearPlayersVoice.MuteVoice", function( listener, talker )
 	if talker.VoiceMuted then return false end
 end)
 
@@ -128,7 +175,7 @@ local cmd = oc.command( 'management', 'mutechat', function( pl, args )
 end)
 cmd:addParam 'players' { type = 'player', 'multi' }
 
-hook.Add( "PlayerSay", "OC.PlayerSay.MuteChat", function( pl )
+hook.Add( "PlayerSay", "oc.PlayerSay.MuteChat", function( pl )
 	if pl.ChatMuted then return "" end
 end)
 
@@ -153,15 +200,10 @@ cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'len' { type = 'time' }
 cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
 
-----------------------------------------------------------------
--- Relaod Map                                                 --
-----------------------------------------------------------------
-local cmd = oc.command( 'utility', 'reload', function( pl )
-	RunConsoleCommand( "changelevel", game.GetMap() );
-end)
+
 
 ----------------------------------------------------------------
--- Reload all players                                         --
+-- Reload players                                             --
 ----------------------------------------------------------------
 local cmd = oc.command( 'test', 'playerinitialspawn', function( pl, args )
 	oc.ForEach( args.players, function( t )
