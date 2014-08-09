@@ -38,9 +38,9 @@ local function playerSend( from, to, force )
 	return tr.HitPos
 end
 
---
--- GOTO PLAYER
---
+----------------------------------------------------------------
+-- Goto                                                      --
+----------------------------------------------------------------
 local cmd = oc.command( 'movement', 'goto', function( pl, args )
 	local succ = playerSend(pl, args.target, pl:GetMoveType() == MOVETYPE_NOCLIP);
 	if not succ then
@@ -51,9 +51,9 @@ local cmd = oc.command( 'movement', 'goto', function( pl, args )
 end)
 cmd:addParam 'target' { type = 'player' }
 
---
--- BRING PLAYER
---
+----------------------------------------------------------------
+-- Bring                                                      --
+----------------------------------------------------------------
 local cmd = oc.command( 'movement', 'bring', function( pl, args )
 	local succ = playerSend(args.target, pl, args.target:GetMoveType() == MOVETYPE_NOCLIP);
 	if not succ then
@@ -64,9 +64,9 @@ local cmd = oc.command( 'movement', 'bring', function( pl, args )
 end)
 cmd:addParam 'target' { type = 'player' }
 
---
--- SEND PLAYER TO PLAYER
---
+----------------------------------------------------------------
+-- Send                                                       --
+----------------------------------------------------------------
 local cmd = oc.command( 'movement', 'bring', function( pl, args )
 	local succ = playerSend(args.send, args.to, args.send:GetMoveType() == MOVETYPE_NOCLIP);
 	if not succ then
@@ -78,10 +78,9 @@ end)
 cmd:addParam 'send' { type = 'player', help = 'player to send' }
 cmd:addParam 'to' { type = 'player', help = 'target player' }
 
-
---
--- NOCLIP
---
+----------------------------------------------------------------
+-- Noclip                                                     --
+----------------------------------------------------------------
 local function toggleFlying(pl)
 	local mt = pl:GetMoveType();
 	if mt == MOVETYPE_NOCLIP then
@@ -119,7 +118,6 @@ local cmd_noclip = cmd;
 cmd:addExtraPerm 'others';
 cmd:addParam 'target' { type = 'player', help = 'player to noclip', default = function(pl) return pl end }
 
--- require permission to noclip
 hook.Add('PlayerNoClip', 'oc.permCheck.PlayerNoClip', function(pl)
 	local canNoclip = oc.p(pl):getPerm(cmd_noclip.perm);
 	if canNoclip then
@@ -129,3 +127,31 @@ hook.Add('PlayerNoClip', 'oc.permCheck.PlayerNoClip', function(pl)
 		return false
 	end
 end);
+
+----------------------------------------------------------------
+-- Physgun Player                                             --
+----------------------------------------------------------------
+local cmd = oc.command( 'movement', 'physgun', function( pl ) // Temp hack job
+	oc.notify(pl, oc.cfg.color_error, 'Don\'t use the command');
+end)
+local cmd_physgun = cmd;
+cmd:addExtraPerm 'others';
+// oc.registerPerm('physgun')
+
+hook.Add('PhysgunPickup', 'oc.PhysgunPickup.PlayerPhysgun', function( pl, ent )
+	local canPhys = oc.p(pl):getPerm(cmd_physgun.perm)
+	if ent:IsPlayer() && canPhys then
+		ent:Freeze(true)
+		ent:SetMoveType(MOVETYPE_NOCLIP)
+		return true
+	else
+		return false
+	end
+end)
+
+hook.Add('PhysgunDrop', 'oc.PhysgunDrop.PlayerPhysgun', function( pl, ent )
+	if ent:IsPlayer() then 
+		ent:Freeze(false) 
+		ent:SetMoveType(MOVETYPE_WALK) 
+	end
+end)
