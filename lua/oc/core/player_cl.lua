@@ -34,7 +34,7 @@ end
 -- LOADS INHERITED PERMISSIONS
 function player_mt:loadInheritance()
 	-- load primary usergroup
-	self.primaryGroup = oc.g(self:getPermNumber('group.primary')) or oc.g(oc.cfg.group_user);
+	self.primaryGroup = oc.g(self:getPermNumber('group.primary') or oc.cfg.group_user) or oc.g(oc.cfg.group_user);
 
 	-- load secondary user groups
 	local groupids = self:getPerm('group.secondary');
@@ -42,7 +42,10 @@ function player_mt:loadInheritance()
 		local groups = {};
 		for k,v in pairs(groupids)do
 			local num = tonumber(v, 16);
-			groups[#groups+1] = oc.g(num);
+			print(v, num);
+			if num then
+				groups[#groups+1] = oc.g(num);
+			end
 		end
 		self.groups = groups;
 	end

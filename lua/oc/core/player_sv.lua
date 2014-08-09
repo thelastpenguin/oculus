@@ -221,9 +221,7 @@ end
 
 
 function player_mt:_delPerm(perm, isGlobal, done)
-	return oc.data.userDelPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, function()
-		self:fetchPerms( isGlobal, xfn.fn_deafen(done or xfn.noop));
-	end);
+	return oc.data.userDelPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, done);
 end
 function player_mt:delPerm(perm, isGlobal, done)
 	local subs = (isGlobal and self.globalPerms or self.serverPerms):getPerm(perm);
@@ -234,14 +232,11 @@ function player_mt:delPerm(perm, isGlobal, done)
 		return
 	end
 	
-	local amIDone;
-	if done then
-		amIDone = function()
-			count = count - 1;
-			if count == 0 then done() end
+	function amIDone()
+		count = count - 1
+		if count == 0 then
+			self:fetchPerms( isGlobal, done or xfn.noop);
 		end
-	else
-		amIDone = xfn.noop;
 	end
 	
 	for _, sub in ipairs(subs)do

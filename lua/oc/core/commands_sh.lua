@@ -69,6 +69,10 @@ function command_mt:setHelp( text )
 	self.help = text;
 end
 
+function command_mt:getHelp()
+	return self.help;
+end
+
 -- set console only
 function command_mt:setConsoleOnly( _b )
 	self.conOnly = _b;
@@ -91,6 +95,10 @@ end
 -- get permission
 function command_mt:getPerm( )
 	return self.perm;
+end
+
+function command_mt:playerCanUse(pl)
+	return oc.checkPerm(pl, self.perm);
 end
 
 
@@ -156,22 +164,7 @@ function oc.RunConCommand( pl, text_cmd, args )
 	oc.RunCommand( pl, meta, args );
 end
 
-
-concommand.Remove('oc');
-concommand.Add('oc', function(pl, _, args)
-	if #args == 0 then
-		oc.notify(pl, oc.cfg.color_error, 'Command expected got nothing');
-		return ;
-	end
-	local cmd = table.remove(args, 1):lower();
-	local cmdMeta = oc.commands[cmd];
-	if not cmdMeta then
-		oc.notify(pl, oc.cfg.color_error, 'Command \''..cmd..'\' not found');
-		return ;
-	end
-	
-	oc.RunConCommand(pl, cmd, args);
-end, function(pl, text_arg)
+function oc.AutocompleteCommand( pl, text_arg )
 	
 	-- properly descide which arguement we are currently intrested in
 	local rawArgs = oc.ParseString(text_arg);
@@ -189,9 +182,10 @@ end, function(pl, text_arg)
 	
 	if argIndex == 0 or argIndex == 1 then
 		if arg then arg = arg:lower() end
-		for cmdName,_ in pairs(oc.commands)do
+		local oc_player = oc.p(pl);
+		for cmdName,cmdMeta in pairs(oc.commands)do
 			-- if arg is nil everything passes
-			if not arg or cmdName:find(arg) then
+			if (not arg or cmdName:find(arg)) and oc_player:getPerm(cmdMeta.perm) then
 				table.insert(res, cmdName);
 			end
 		end
@@ -199,7 +193,7 @@ end, function(pl, text_arg)
 		-- arguement autocompletion
 		local command = oc.commands[rawArgs[1] and rawArgs[1]:lower()];
 		if not command then
-			return '<command not found>';
+			return {'<command not found>'};
 		else
 			local paramMeta = command:getParam(argIndex-1);
 			if not paramMeta then return {'<too many params>'} end
@@ -232,7 +226,7 @@ end, function(pl, text_arg)
 			
 			-- if there is no arg then show help
 			if not arg and paramMeta.help then
-				table.insert(res, 1, 'tip: ' .. paramMeta.help);
+				table.insert(res, 'tip: ' .. paramMeta.help);
 			end
 			
 			if #res == 0 then
@@ -264,6 +258,31 @@ end, function(pl, text_arg)
 	end
 	
 	return res;
+end
+
+
+concommand.Add('oc', function(pl, _, args)
+	if #args == 0 then
+		oc.notify(pl, oc.cfg.color_error, 'Command expected got nothing');
+		return ;
+	end
+	local cmd = table.remove(args, 1):lower();
+	local cmdMeta = oc.commands[cmd];
+	if not cmdMeta then
+		oc.notify(pl, oc.cfg.color_error, 'Command \''..cmd..'\' not found');
+		return ;
+	end
+	
+	oc.RunConCommand(pl, cmd, args);
+end, function(_, text_arg)
+
+	local pl = CLIENT and LocalPlayer() or Entity(1)
+
+	if not pl then 
+		Error('no player could be found');
+	end
+
+	return oc.AutocompleteCommand( pl, text_arg )
 end);
 
 
@@ -440,8 +459,6 @@ oc.fancy_formats['P'] = function( players )
 	if type( players ) ~= 'table' then
 		players = { players };
 	end
-	PrintTable( players );
-	
 	local addName, addSep ;
 	
 	local playerCount = #players;

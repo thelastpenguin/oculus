@@ -41,6 +41,7 @@ net.Receive('oc.g.syncPerms', function(len)
 end);
 
 local groups = {};
+oc.groups = groups;
 function oc.g(groupid)
 	if not groups[groupid] then
 		groups[groupid] = setmetatable({

@@ -35,7 +35,7 @@ end
 --
 function oc.group.loadId(g_id)
 	
-	if groups[g_id] then return end
+	if groups[g_id] then return groups[g_id] end
 	
 	local group = {};
 	
@@ -53,11 +53,12 @@ function oc.group.loadId(g_id)
 		oc.LoadMsg(2, 'Loaded group: ' .. group.gid.. ' - ' .. group.name);
 		groups[g_id] = setmetatable(group, group_mt);
 		
-		groups[g_id]:sync();
+		group:sync();
 		
 		-- fetch permissions
 		group:fetchPerms(true, xfn.noop):wait();
 		group:fetchPerms(false, xfn.noop):wait();
+		
 		return group;
 	else
 		oc.LoadMsg(2, 'ERROR! FAILED TO LOAD GROUP: ' .. g_id);

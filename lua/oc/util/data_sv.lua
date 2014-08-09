@@ -116,7 +116,7 @@ function oc.data.groupFetchPerms( sv_id, g_id, callback )
 end
 
 function oc.data.groupAddPerm( sv_id, g_id, perm, callback )	
-	db:query_ex('REPLACE INTO oc_group_perms VALUES(?,?,\'?\')',{sv_id, g_id, perm}, callback);
+	db:query_ex('REPLACE INTO oc_group_perms (sv_id,g_id,perm)VALUES(?,?,\'?\')',{sv_id, g_id, perm}, callback);
 end
 function oc.data.groupDelPerm( sv_id, g_id, perm, callback )
 	db:query_ex('DELETE FROM oc_group_perms WHERE sv_id=? AND g_id=? AND perm=\'?\'',{sv_id, g_id, perm}, callback);
