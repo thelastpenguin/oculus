@@ -72,6 +72,7 @@ oc.include_cl 'core/group_cl.lua' 'CORE: group cl';
 oc.include_sv 'core/player_sv.lua' 'CORE: player sv';
 oc.include_cl 'core/player_cl.lua' 'CORE: player cl';
 oc.include_sh 'core/commands_sh.lua' 'CORE: commands';
+oc.include_sh 'core/autocomplete_sh.lua' 'CORE: autocomplete';
 oc.include_sh 'core/plugins_sh.lua' '\nCORE: plugins\n';
 
 
@@ -79,3 +80,5 @@ print();oc.LoadMsg( '\nHOOKS\n' );
 oc.include_sv 'core/hooks_sv.lua' 'server hooks';
 oc.include_cl 'core/hooks_cl.lua' 'client hooks';
 
+
+oc.hook.Call('loaded');

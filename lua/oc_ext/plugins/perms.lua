@@ -1,12 +1,3 @@
-local function autocomplete_perms()
-	local res = {};
-	for k,v in pairs(oc.commands)do
-		table.insert(res, 'cmd.'..k);
-	end
-	return res;
-end
-
-
 -- group add perm
 local cmd = oc.command( 'permissions', 'groupaddlocalperm', function( pl, args )
 	args.group:addPerm(args.perm, false);
@@ -14,7 +5,7 @@ local cmd = oc.command( 'permissions', 'groupaddlocalperm', function( pl, args )
 end)
 cmd:setHelp 'grant the group local access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 
 -- group del perm
@@ -24,7 +15,7 @@ local cmd = oc.command( 'permissions', 'groupdellocalperm', function( pl, args )
 end)
 cmd:setHelp 'deny the group local access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 
 
@@ -36,7 +27,7 @@ local cmd = oc.command( 'permissions', 'groupaddglobalperm', function( pl, args 
 end)
 cmd:setHelp 'grant the group global access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 
 -- group del perm
@@ -46,7 +37,7 @@ local cmd = oc.command( 'permissions', 'groupdelglobalperm', function( pl, args 
 end)
 cmd:setHelp 'deny the group global access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 
 
@@ -59,7 +50,7 @@ local cmd = oc.command( 'permissions', 'playeraddlocalperm', function( pl, args 
 end)
 cmd:setHelp 'grant the player local access to the specified permission'
 cmd:addParam 'player' { type = 'player', help = 'target player' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 -- player add perm
 local cmd = oc.command( 'permissions', 'playeraddglobalperm', function( pl, args )
@@ -68,7 +59,7 @@ local cmd = oc.command( 'permissions', 'playeraddglobalperm', function( pl, args
 end)
 cmd:setHelp 'grant the player global access to the specified permission'
 cmd:addParam 'player' { type = 'player', help = 'target player' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 
 
@@ -79,7 +70,7 @@ local cmd = oc.command( 'permissions', 'playerdellocalperm', function( pl, args 
 end)
 cmd:setHelp 'remove local access to the specified perm from the player'
 cmd:addParam 'player' { type = 'player', help = 'target player'}
-cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 -- player del perm
 local cmd = oc.command( 'permissions', 'playerdelglobalperm', function( pl, args )
@@ -88,7 +79,7 @@ local cmd = oc.command( 'permissions', 'playerdelglobalperm', function( pl, args
 end)
 cmd:setHelp 'remove global access to the specified perm from the player'
 cmd:addParam 'player' { type = 'player', help = 'target player'}
-cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', options = autocomplete_perms}
+cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', options = oc.autocomplete.commandPerms}
 
 
 
@@ -150,3 +141,30 @@ cmd:setHelp 'del secondary global group'
 cmd:addParam 'player' { type = 'player', help = 'target player' }
 cmd:addParam 'group' { type = 'group', help = 'secondary group' }
 
+
+-- player get secondary groups
+local cmd = oc.command( 'permissions', 'playerinfo', function( pl, args )
+end)
+cmd:runOnClient(function(args)
+	local pl = args.player;
+	oc.LoadMsg(0, '\nNAME: '..pl:Name());
+	oc.LoadMsg(0, 'GROUP: '..pl:GetNWString('UserGroup', 'unknown')..'\n');
+	local plMeta = oc.p(pl);
+	
+	if plMeta.globalPerms then
+		oc.LoadMsg(0, 'GLOBAL PERMS:\n');
+		local function recurse(depth, tree, perm)
+			for _, sub in ipairs(tree)do
+				oc.LoadMsg(depth, sub);
+				recurse(depth + 2, plMeta.globalPerms:getPerm(perm..'.'..sub));
+			end
+		end
+		
+		for k,v in ipairs(plMeta.globalPerms.root)do
+			oc.LoadMsg(2, v)
+			recurse(4, plMeta.globalPerms:getPerm(v));
+		end
+	end
+end);
+cmd:setHelp 'print various information about the specified player'
+cmd:addParam 'player' { type = 'player', help = 'target player' }
