@@ -144,8 +144,6 @@ hook.Add('PhysgunPickup', 'oc.PhysgunPickup.PlayerPhysgun', function( pl, ent )
 		ent:Freeze(true)
 		ent:SetMoveType(MOVETYPE_NOCLIP)
 		return true
-	else
-		return false
 	end
 end)
 
