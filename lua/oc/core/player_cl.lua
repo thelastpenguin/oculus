@@ -7,7 +7,6 @@ function oc.p(pl)
 	if players[pl] then
 		return players[pl];
 	else
-		dprint('creating player meta wrapper for '..pl:Name());	
 		local meta = setmetatable({
 			player = pl,
 			vars = {},	
@@ -96,15 +95,14 @@ end);
 
 net.Receive('oc.pl.syncPermTree', function(len)
 	local isGlobal = net.ReadUInt(8) == 1;
-	local permStr = net.ReadString();
 		
-	dprint('received perms: '..(isGlobal and 'global' or 'server' )..' - '..permStr);
-	local perms = pon.decode(permStr);
+	dprint('received perms: '..(isGlobal and 'global' or 'server' ));
 	local p = oc.p(LocalPlayer());
+	local perms = oc.perm():netRead();
 	if isGlobal then
-		p.globalPerms = oc.permAdopt(perms);
+		p.globalPerms = perms;
 	else
-		p.serverPerms = oc.permAdopt(perms);
+		p.serverPerms = perms;
 	end
 	
 	p:applyPermUpdates();

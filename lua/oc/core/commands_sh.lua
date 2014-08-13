@@ -2,11 +2,11 @@ oc.commands = {};
 
 -- STUBS REMOVE LATER
 function oc.checkPerm( pl, perm )
-	if not IsValid(pl) and pl:EntIndex() < 0 then return true end
+	if not IsValid(pl) then return true end
 	return oc.p(pl):getPerm(perm) and true or false;
 end
 function oc.canTarget( pl, targ )
-	if not IsValid(pl) and pl:EntIndex() < 0 then return true end
+	if not IsValid(pl) then return true end
 	return oc.p(pl):getImmunity() >= oc.p(targ):getImmunity();
 end
 
@@ -44,6 +44,8 @@ function oc.command( category, command, action )
 	setmetatable( c, command_mt );
 	
 	oc.commands[ command ] = c;
+	
+	oc.perm.register(c.perm); -- register the command permission.
 	
 	return c;
 end
@@ -110,6 +112,8 @@ function command_mt:addExtraPerm(perm)
 		self.extraPerms = {};
 	end
 	table.insert(self.extraPerms, perm);
+	
+	oc.perm.register(self.perm..'.'..perm); -- register the permission
 end
 function command_mt:getExtraPerms()
 	return self.extraPerms;
@@ -181,6 +185,10 @@ end
 
 
 concommand.Add('oc', function(pl, _, args)
+	if CLIENT then
+		return ;
+	end
+	
 	if #args == 0 then
 		oc.notify(pl, oc.cfg.color_error, 'Command expected got nothing');
 		return ;
@@ -241,7 +249,7 @@ function oc.RunCommand( pl, meta, args )
 		processed[ param.pid ] = narg;
 	end
 	
-	local succ, err = pcall( meta.action, pl, processed, meta );
+	local succ, err = pcall(meta.action, pl, processed, meta);
 	if not succ then
 		oc.notify( pl, oc.cfg.color_error, 'ERROR ON COMMAND: ', err );
 		return ;

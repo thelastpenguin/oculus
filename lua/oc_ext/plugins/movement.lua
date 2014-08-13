@@ -131,15 +131,12 @@ end);
 ----------------------------------------------------------------
 -- Physgun Player                                             --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'physgun', function( pl ) // Temp hack job
-	oc.notify(pl, oc.cfg.color_error, 'Don\'t use the command');
-end)
-local cmd_physgun = cmd;
-cmd:addExtraPerm 'others';
-// oc.registerPerm('physgun')
+
+local physgun_perm = 'plugin.PhysgunPickup.Player';
+oc.perm.register(physgun_perm);
 
 hook.Add('PhysgunPickup', 'oc.PhysgunPickup.PlayerPhysgun', function( pl, ent )
-	local canPhys = oc.p(pl):getPerm(cmd_physgun.perm)
+	local canPhys = oc.p(pl):getPerm(physgun_perm)
 	if ent:IsPlayer() && canPhys then
 		ent:Freeze(true)
 		ent:SetMoveType(MOVETYPE_NOCLIP)

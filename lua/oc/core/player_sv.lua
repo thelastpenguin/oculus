@@ -86,7 +86,7 @@ function player_mt:loadInheritance()
 	-- load primary usergroup
 	self.primaryGroup = oc.g(self:getPermNumber('group.primary')) or oc.g(oc.cfg.group_user);
 	if self.player then
-		self.player:SetNWString('UserGroup', self.primaryGroup.name);
+		self.player:SetUserGroup(self.primaryGroup.name);
 	end
 	
 	-- load secondary user groups
@@ -178,9 +178,9 @@ end
 function player_mt:fetchPerms(isGlobal, done)
 	oc.data.userFetchPerms( isGlobal and 0 or oc.data.svid, self.uid, function(perms)
 		if isGlobal then
-			self.globalPerms = oc.perm(perms);
+			self.globalPerms = oc.perm():addPermTable(perms);
 		else
-			self.serverPerms = oc.perm(perms);
+			self.serverPerms = oc.perm():addPermTable(perms);
 		end
 		self:syncPermTree(isGlobal);
 		done();
@@ -220,28 +220,10 @@ end
 
 
 
-function player_mt:_delPerm(perm, isGlobal, done)
-	return oc.data.userDelPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, done);
-end
 function player_mt:delPerm(perm, isGlobal, done)
-	local subs = (isGlobal and self.globalPerms or self.serverPerms):getPerm(perm);
-	if not subs then done() return end
-	local count = #subs;
-	if count == 0 then
-		self:_delPerm(perm, isGlobal, done);
-		return
-	end
-	
-	function amIDone()
-		count = count - 1
-		if count == 0 then
-			self:fetchPerms( isGlobal, done or xfn.noop);
-		end
-	end
-	
-	for _, sub in ipairs(subs)do
-		self:delPerm(perm..'.'..sub, isGlobal, amIDone);
-	end
+	oc.data.groupDelPerm( isGlobal and 0 or oc.data.svid, self.gid, perm, function()
+		self:fetchPerms(isGlobal, done);
+	end);
 end
 
 function player_mt:addPerm(perm, isGlobal, done)
@@ -267,7 +249,7 @@ util.AddNetworkString('oc.pl.syncPermTree');
 function player_mt:syncPermTree(isGlobal)
 	net.Start('oc.pl.syncPermTree');
 		net.WriteUInt(isGlobal and 1 or 0, 8);
-		net.WriteString(pon.encode(isGlobal and self.globalPerms.root or self.serverPerms.root));
+		(isGlobal and self.globalPerms or self.serverPerms):netWrite();
 	net.Send(self.player);
 end
 

@@ -5,7 +5,7 @@ local cmd = oc.command( 'permissions', 'groupaddlocalperm', function( pl, args )
 end)
 cmd:setHelp 'grant the group local access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 
 -- group del perm
@@ -15,7 +15,7 @@ local cmd = oc.command( 'permissions', 'groupdellocalperm', function( pl, args )
 end)
 cmd:setHelp 'deny the group local access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 
 -- group add perm
@@ -25,7 +25,7 @@ local cmd = oc.command( 'permissions', 'groupaddglobalperm', function( pl, args 
 end)
 cmd:setHelp 'grant the group global access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 
 -- group del perm
@@ -35,7 +35,7 @@ local cmd = oc.command( 'permissions', 'groupdelglobalperm', function( pl, args 
 end)
 cmd:setHelp 'deny the group global access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.commandPerms}
+cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 
 local cmd = oc.command( 'permissions', 'groupinfo', function( pl, args )
@@ -55,30 +55,28 @@ else
 		oc.LoadMsg(0, 'IMMUNITY: '..group.immunity);
 		oc.LoadMsg(0, 'INHERITS: '..(group.inherits and group.inherits.name or 'nothing'));
 		
-		local function printPermTree(tree)
-			local function recurse(depth, _tree, perm)
-				if not perm then return end
-				perm = perm..'.';
-				for _, sub in ipairs(_tree)do
-					oc.LoadMsg(depth, sub);
-					recurse(depth + 2, tree:getPerm(perm..sub), perm..sub);
-				end
-			end
-			
-			for k,v in ipairs(tree.root)do
-				oc.LoadMsg(2, v)
-				recurse(4, tree:getPerm(v), v);
+		local function printChildren( obj, depth, perm )
+			local cldrn = obj:getPerm(perm);
+			for k,v in pairs(cldrn) do
+				oc.LoadMsg( depth, v );
+				printChildren( obj, depth + 2, perm..'.'..v );
 			end
 		end
 		
 		if group.globalPerms then
-			oc.LoadMsg(0, '\nGLOBAL PERMS:\n');
-			printPermTree(group.globalPerms);
+			oc.LoadMsg(0, 'GLOBAL PERMS:');
+			for k,v in pairs(group.globalPerms:getPerm('*')) do
+				oc.LoadMsg(2, v);
+				printChildren(group.globalPerms, 4, v);
+			end
 		end
 		
 		if group.serverPerms then
-			oc.LoadMsg(0, '\nLOCAL PERMS:\n');
-			printPermTree(group.serverPerms);
+			oc.LoadMsg(0, 'SERVER PERMS:');
+			for k,v in pairs(group.serverPerms:getPerm('*')) do
+				oc.LoadMsg(2, v);
+				printChildren(group.serverPerms, 4, v);
+			end
 		end
 	end);
 end

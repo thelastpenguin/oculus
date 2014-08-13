@@ -73,6 +73,7 @@ oc.include_sv 'core/player_sv.lua' 'CORE: player sv';
 oc.include_cl 'core/player_cl.lua' 'CORE: player cl';
 oc.include_sh 'core/commands_sh.lua' 'CORE: commands';
 oc.include_sh 'core/autocomplete_sh.lua' 'CORE: autocomplete';
+oc.include_sh 'core/player_meta_sh.lua' 'CORE: player meta sh';
 oc.include_sh 'core/plugins_sh.lua' '\nCORE: plugins\n';
 
 

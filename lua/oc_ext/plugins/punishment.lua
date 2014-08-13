@@ -101,18 +101,18 @@ end
 
 local cmd = oc.command( 'management', 'slay', function( pl, args )
 	-- disolver
-	local targname = "dissolveme"..pl:EntIndex();
+	local targname = "dissolveme"..tostring({});
 	local drift_dir = Vector(0,0,10); -- make em float up
 	for _, targ in pairs(args.players)do
-		pl:Kill( );
-		local rag = ragdollPlayer(pl);
+		targ:Kill( );
+		local rag = ragdollPlayer(targ);
 		rag:SetKeyValue("targetname",targname)
 		local numbones = rag:GetPhysicsObjectCount()
 		local PhysObj;
 		for bone = 0, numbones - 1 do 
 			PhysObj = rag:GetPhysicsObjectNum(bone)
 			if PhysObj:IsValid()then
-				PhysObj:SetVelocity(PhysObj:GetVelocity()*0.04+drift_dir)
+				PhysObj:SetVelocity(PhysObj:GetVelocity()*0.04+Vector(math.random(-100,100),math.random(-100,100),math.random(-100,100)));
 				PhysObj:EnableGravity(false)
 			end
 		end
@@ -120,7 +120,7 @@ local cmd = oc.command( 'management', 'slay', function( pl, args )
 	
 	local dissolver = ents.Create("env_entity_dissolver")
 	dissolver:SetKeyValue("magnitude",0)
-	dissolver:SetPos(pl:GetPos())
+	dissolver:SetPos(args.players[1]:GetPos());
 	dissolver:SetKeyValue("target",targname)
 	dissolver:Spawn()
 	dissolver:Fire("Dissolve",targname,0)

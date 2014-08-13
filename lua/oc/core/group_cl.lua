@@ -3,6 +3,7 @@ group_mt.__index = group_mt;
 
 
 function group_mt:getPerm(perm)
+	if not self.serverPerms or not self.globalPerms then return false end
 	return self.serverPerms:getPerm(perm) or self.globalPerms:getPerm(perm) or (self.inherits and self.inherits:getPerm(perm));
 end
 
@@ -26,17 +27,19 @@ net.Receive('oc.g.syncMeta', function(len)
 	group.inherits = inherits ~= 0 and oc.g(inherits) or nil;
 	group.name = net.ReadString();
 end);
+
 net.Receive('oc.g.syncPerms', function(len)
 	local isGlobal = net.ReadUInt(8) == 1;
 	local groupid = net.ReadUInt(32);
-	local permTreeStr = net.ReadString();
-	dprint('syncing group perm data for '..groupid..':'..(isGlobal and 'global' or 'server')..' = '..permTreeStr);
+	dprint('syncing group perm data for '..groupid..':'..(isGlobal and 'global' or 'server'));
+
+	local perms = oc.perm()
+	perms:netRead();
 	
-	local permTree = pon.decode(permTreeStr);
 	if isGlobal then
-		oc.g(groupid).globalPerms = oc.permAdopt(permTree);
+		oc.g(groupid).globalPerms = perms
 	else
-		oc.g(groupid).serverPerms = oc.permAdopt(permTree);
+		oc.g(groupid).serverPerms = perms;
 	end
 end);
 

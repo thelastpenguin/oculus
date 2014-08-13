@@ -96,13 +96,18 @@ function group_mt:fetchPerms(isGlobal, done)
 		for k,v in pairs(data)do
 			oc.LoadMsg(4, 'perm: '..v);
 		end
+		
+		local perms = oc.perm():addPermTable(data);
+		dprint('loaded group permissions');
+		
 		if isGlobal then
-			self.globalPerms = oc.perm(data);
+			self.globalPerms = perms;
 		else
-			self.serverPerms = oc.perm(data);
+			self.serverPerms = perms;
 		end
 		self:syncPerms(isGlobal);
-		done();
+		
+		if done then done() end
 	end);
 end
 
@@ -126,21 +131,9 @@ function group_mt:setPermNumber(perm, value, isGlobal, done)
 end
 
 function group_mt:delPerm(perm, isGlobal, done)
-	local subs = (isGlobal and self.globalPerms or self.serverPerms):getPerm(perm);
-	local count = #subs;
-	if count == 0 then
-		return self:_delPerm(perm, isGlobal, done);
-	end
-	local amIDone = done and function()
-		count = count - 1;
-		if count == 0 then
-			done()
-		end
-	end or xfn.noop;
-	for _, sub in ipairs(subs)do
-		self:delPerm(perm..'.'..sub, isGlobal, amIDone);
-	end
-	self:syncPerms();
+	oc.data.groupDelPerm( isGlobal and 0 or oc.data.svid, self.gid, perm, function()
+		self:fetchPerms(isGlobal, done);
+	end);
 end
 
 function group_mt:getPerm(perm)
@@ -173,7 +166,7 @@ function group_mt:syncPerms(isGlobal, pl)
 	net.Start('oc.g.syncPerms')
 		net.WriteUInt(isGlobal and 1 or 0, 8);
 		net.WriteUInt(self.gid, 32);
-		net.WriteString(pon.encode(isGlobal and self.globalPerms.root or self.serverPerms.root));
+		(isGlobal and self.globalPerms or self.serverPerms):netWrite();
 	net.Send(pl or player.GetAll());
 end
 

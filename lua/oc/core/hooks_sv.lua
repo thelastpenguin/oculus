@@ -23,3 +23,8 @@ hook.Add('OnEntityCreated', 'oc.OnEntityCreated', function(ent)
 	oc.hook.Call('OnEntityCreated', ent);
 end);
 oc.hook.Add('OnEntityCreated', oc.HookPluginField('OnEntityCreated'));
+
+hook.Add('PostGamemodeLoaded', 'oc.PostGamemodeLoaded', function()
+	oc.hook.Call('PostGamemodeLoaded');
+end);
+oc.hook.Add('PostGamemodeLoaded', oc.HookPluginField('PostGamemodeLoaded'));

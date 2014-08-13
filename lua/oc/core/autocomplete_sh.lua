@@ -95,25 +95,21 @@ function oc.AutocompleteCommand( pl, text_arg )
 end
 
 
+
 oc.autocomplete = {};
+oc.autocomplete.perms = oc.permissions;
 oc.autocomplete.commandPerms = {};
 
 oc.hook.Add('loaded', function()
 	dprint('calculating autocomplete options');
 	
 	-- autocomplete options for command permissions
-	local commandPerms = oc.autocomplete.commandPerms;
-	table.Empty(commandPerms);
-	for k,meta in pairs(oc.commands)do
-		if meta.perm then
-			commandPerms[#commandPerms+1] = meta.perm;
-			if meta:getExtraPerms() then
-				for k,v in pairs(meta:getExtraPerms())do
-					commandPerms[#commandPerms+1] = v;
-				end
-			end
+	local cmdPerms = oc.autocomplete.commandPerms;
+	for k,v in pairs(oc.permissions)do
+		if v:find('cmd.', 1, true) == 1 then
+			table.insert(cmdPerms, v);
 		end
 	end
-	dprint('calculated '..#commandPerms..' options for command permisisons');
+	dprint('calculated '..#cmdPerms..' options for command permissions');
 	
 end);
