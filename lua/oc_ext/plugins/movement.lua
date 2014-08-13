@@ -123,7 +123,7 @@ hook.Add('PlayerNoClip', 'oc.permCheck.PlayerNoClip', function(pl)
 	if canNoclip then
 		return true
 	else
-		oc.notify(pl, oc.cfg.color_error, 'You need permission \'move.noclip\' to noclip!');
+		if SERVER then oc.notify(pl, oc.cfg.color_error, 'You need permission \'move.noclip\' to noclip!') end
 		return false
 	end
 end);

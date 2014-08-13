@@ -165,7 +165,6 @@ function oc.RunChatCommand( pl, text_cmd, text_arg )
 	oc.RunCommand( pl, meta, args );
 end
 
-
 /* ======================================================================
 	 	CONSOLE COMMAND EXECUATION
 	 ====================================================================== */
@@ -186,6 +185,7 @@ end
 
 concommand.Add('oc', function(pl, _, args)
 	if CLIENT then
+		RunConsoleCommand('_oc', unpack(args));
 		return ;
 	end
 	
@@ -212,7 +212,22 @@ end, function(_, text_arg)
 	return oc.AutocompleteCommand( pl, text_arg )
 end);
 
-
+if SERVER then
+	concommand.Add('_oc', function(pl, _, args)
+		if #args == 0 then
+			oc.notify(pl, oc.cfg.color_error, 'Command expected got nothing');
+			return ;
+		end
+		local cmd = table.remove(args, 1):lower();
+		local cmdMeta = oc.commands[cmd];
+		if not cmdMeta then
+			oc.notify(pl, oc.cfg.color_error, 'Command \''..cmd..'\' not found');
+			return ;
+		end
+		
+		oc.RunConCommand(pl, cmd, args);
+	end);
+end
 
 /* ======================================================================
 	 	COMMAND EXECUTION

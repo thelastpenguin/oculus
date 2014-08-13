@@ -41,7 +41,6 @@ function player_mt:loadInheritance()
 		local groups = {};
 		for k,v in pairs(groupids)do
 			local num = tonumber(v, 16);
-			print(v, num);
 			if num then
 				groups[#groups+1] = oc.g(num);
 			end
