@@ -146,6 +146,9 @@ oc.hook.Add( 'PlayerSay', function( pl, text )
 		else
 			oc.print("COMMAND NOT FOUND! ", text_cmd );
 		end
+		
+		oc.notify( pl, oc.cfg.color_error, text .. ' is not a valid command!');
+		
 		return '';
 	end
 end);
