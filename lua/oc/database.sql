@@ -1,10 +1,3 @@
-DROP TABLE IF EXISTS oc_servers;
-DROP TABLE IF EXISTS oc_users;
-DROP TABLE IF EXISTS oc_user_perms;
-DROP TABLE IF EXISTS oc_user_vars;
-DROP TABLE IF EXISTS oc_groups;
-DROP TABLE IF EXISTS oc_group_perms;
-
 # SERVERS LINKS UP SERVER IDENTIFIER
 CREATE TABLE IF NOT EXISTS oc_servers (
 	`sv_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -58,10 +51,23 @@ CREATE TABLE IF NOT EXISTS oc_user_vars (
 	UNIQUE(`sv_id`, `u_id`)
 ) ENGINE=InnoDB;
 
+# BANS
+CREATE TABLE IF NOT EXISTS oc_bans ( 
+	`b_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	`banned_steamid` VARCHAR(30) NOT NULL,
+	`banned_name` VARCHAR(30),
+	`reason` VARCHAR(255),
+	`admin_steamid` VARCHAR(30),
+	`admin_name` VARCHAR(30),
+	`ban_time` INT UNSIGNED NOT NULL,
+	`unban_time` INT UNSIGNED NOT NULL,
+	PRIMARY KEY(`b_id`)
+) ENGINE=InnoDB;
+
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (0,0,'user',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (128,20,'admin',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (129,50,'superadmin',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (130,100,'owner',0);
 
-REPLACE INTO `oc_group_perms` (g_id,sv_id,perm) VALUES (129,0,'legacy.isAdmin')
-REPLACE INTO `oc_group_perms` (g_id,sv_id,perm) VALUES (130,0,'legacy.isSuperAdmin')
+REPLACE INTO `oc_group_perms` (g_id,sv_id,perm) VALUES (129,0,'meta.isAdmin')
+REPLACE INTO `oc_group_perms` (g_id,sv_id,perm) VALUES (130,0,'meta.isSuperAdmin')

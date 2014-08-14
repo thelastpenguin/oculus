@@ -135,7 +135,7 @@ cmd:addParam 'group' { type = 'group', help = 'secondary group' }
 -- player del secondary group
 local cmd = oc.command( 'permissions', 'playerdelglobalgroup', function( pl, args )
 	oc.p(args.player):delGroup(args.group.gid, true);
-	oc.notify_fancy( player.GetAll(), '#P added secondary global group #G for #P', pl, args.group, args.player );
+	oc.notify_fancy( player.GetAll(), '#P removed secondary global group #G for #P', pl, args.group, args.player );
 end)
 cmd:setHelp 'del secondary global group'
 cmd:addParam 'player' { type = 'player', help = 'target player' }

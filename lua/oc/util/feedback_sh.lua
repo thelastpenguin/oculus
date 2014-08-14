@@ -131,7 +131,8 @@ elseif CLIENT then
 	
 	local mc, mcd, white = oc.cfg.mod_color, oc.cfg.mod_color_d, Color(255,255,255); 
 	net.Receive( 'oc_notify_ex', function()
-		chat.AddText( mcd,'[',mc,'OC',mcd, ']  ', white, readmessage( ) );	
+		surface.PlaySound('sound/p_theme/beep-21.mp3');
+		chat.AddText( mcd, '| ', white, readmessage( ) );	
 	end);
 	
 end

@@ -1,3 +1,5 @@
+local oc = oc;
+
 local player_mt = {};
 player_mt.__index = player_mt;
 
@@ -81,6 +83,10 @@ end
 function player_mt:getPermNumber(perm)
 	local res = self:getPerm(perm);
 	return res and res[1] and tonumber(res[1], 16);
+end
+
+function player_mt:getVar(key)
+	return self.vars and self.vars[key];
 end
 
 

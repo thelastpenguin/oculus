@@ -1,3 +1,5 @@
+local oc = oc;
+
 oc.commands = {};
 
 -- STUBS REMOVE LATER
@@ -357,6 +359,13 @@ mults['w'] = 7 *mults['d'];
 local divs = {'w','d','h','m'}
 local TYPE = {};
 TYPE.parse = function( arg, param )
+	if tonumber(arg) then
+		return true, tonumber(arg);
+	end
+	if param.forever and arg == 'forever' then
+		return true, -1;
+	end
+	
 	local s = 0;
 	for v, t in string.gmatch( arg, '(%d+)(%a+)' ) do
 		if mults[t] then s = s + v * mults[t] end
@@ -365,6 +374,10 @@ TYPE.parse = function( arg, param )
 end
 oc.addParamType( 'time', TYPE );
 oc.fancy_formats['T'] = function( number )
+	if number == -1 then
+		return oc.cfg.color_time, 'forever';
+	end
+	
 	local time = ''
 	for _, div in ipairs( divs )do
 		local val = math.floor( number / mults[div] );

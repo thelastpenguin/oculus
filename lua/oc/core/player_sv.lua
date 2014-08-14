@@ -159,6 +159,9 @@ function player_mt:setVar( key, value )
 	self.vars[key] = value;
 	self:syncVar(key, pl);
 end
+function player_mt:getVar(key)
+	return self.vars and self.vars[key];
+end
 function player_mt:syncAllVars(pl)
 	for k,v in pairs(self.vars)do
 		self:syncVar(k, pl);

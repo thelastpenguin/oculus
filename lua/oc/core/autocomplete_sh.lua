@@ -1,3 +1,8 @@
+local oc = oc;
+local table = table ;
+local string = string ;
+
+
 function oc.AutocompleteCommand( pl, text_arg )
 	
 	-- properly descide which arguement we are currently intrested in
@@ -16,11 +21,11 @@ function oc.AutocompleteCommand( pl, text_arg )
 	
 	if argIndex == 0 or argIndex == 1 then
 		if arg then arg = arg:lower() end
-		local oc_player = oc.p(pl);
 		for cmdName,cmdMeta in pairs(oc.commands)do
 			-- if arg is nil everything passes
-			if (not arg or cmdName:find(arg)) and oc_player:getPerm(cmdMeta.perm) then
+			if (not arg or cmdName:find(arg)) and cmdMeta:playerCanUse(pl) then
 				table.insert(res, cmdName);
+				if #res > 10 then break end
 			end
 		end
 	else
@@ -65,7 +70,7 @@ function oc.AutocompleteCommand( pl, text_arg )
 			
 			if #res == 0 then
 				if arg then table.insert(res, arg) end
-				table.insert(res, '<'..(paramMeta.help or 'no suggestions')..'>');
+				table.insert(res, '<'..(paramMeta.help or (paramMeta.type ..':'..paramMeta.pid))..'>');
 			end
 			
 		end

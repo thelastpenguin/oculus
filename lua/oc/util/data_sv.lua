@@ -69,7 +69,7 @@ function oc.data.userAddPerm( svid, uid, perm, done )
 end
 
 function oc.data.userDelPerm( svid, uid, perm, done )
-	return db:query_ex("DELETE FROM oc_user_perms WHERE sv_id=? AND u_id=? AND perm LIKE '?%'", {svid, uid, perm}, done );
+	return db:query_ex("DELETE FROM oc_user_perms WHERE sv_id=? AND u_id=? AND (perm = '?' OR perm LIKE '?.%')", {svid, uid, perm, perm}, done );
 end
 
 function oc.data.userInitVars( svid, uid, done )
@@ -119,5 +119,5 @@ function oc.data.groupAddPerm( sv_id, g_id, perm, callback )
 	db:query_ex('REPLACE INTO oc_group_perms (sv_id,g_id,perm)VALUES(?,?,\'?\')',{sv_id, g_id, perm}, callback);
 end
 function oc.data.groupDelPerm( sv_id, g_id, perm, callback )
-	db:query_ex('DELETE FROM oc_group_perms WHERE sv_id=? AND g_id=? AND perm LIKE \'?%\'',{sv_id, g_id, perm}, callback);
+	db:query_ex('DELETE FROM oc_group_perms WHERE sv_id=? AND g_id=? AND (perm = \'?\' OR perm LIKE \'?.%\')',{sv_id, g_id, perm, perm}, callback);
 end
