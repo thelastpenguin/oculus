@@ -200,9 +200,8 @@ local cmd = oc.command( 'management', 'ban', function( pl, args )
 	end
 	
 	oc.sb.banPlayer( pl, args.player, math.floor(args.len/60), args.reason, function(data, err)
-		print(data, err);
+		pl:Kick('Banned: '..args.reason);
 	end )
-	pl:Kick('Banned: '..args.reason);
 	
 	oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
 end)

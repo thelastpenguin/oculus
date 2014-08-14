@@ -11,7 +11,7 @@ local queries = {
 	UPDATE_ADMIN = 'UPDATE '..prefix..'admins SET name = \'?\' WHERE identity = \'?\'',
 	INSERT_BAN_BY_STEAMID = 'INSERT INTO '..prefix..'bans (admin_id, admin_ip, steam, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', ?, ?)',
 	INSERT_BAN_BY_STEAMID_CONSOLE = 'INSERT INTO '..prefix..'bans (admin_ip, steam, name, reason, create_time, length) VALUES (\'?\', \'?\', \'?\', \'?\', ?, ?)',
-	SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE unban_time > ? OR create_time > ?',
+	SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (create_time + length*60) > ?',
 	UNBAN_BY_STEAMID_CONSOLE = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
 	UNBAN_BY_STEAMID = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
 }
@@ -109,7 +109,7 @@ oc.sb.bans = {};
 
 function oc.sb.syncBans(done)
 	dprint('syncing all bans');
-	db:query_ex(queries.SELECT_UPDATED_BANS, {lastsync, lastsync}, function(data)
+	db:query_ex(queries.SELECT_UPDATED_BANS, {lastsync, lastsync, os.time()}, function(data)
 		for _, ban in pairs(data)do
 			oc.sb.bans[ban.id] = ban;
 		end
