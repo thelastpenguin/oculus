@@ -65,7 +65,8 @@ oc.include_sv 'util/data_sv.lua' 'UTIL: data api' ;
 oc.include_sh 'util/feedback_sh.lua' 'UTIL: feedback';
 oc.include_sh 'util/binary_sh.lua' 'UTIL: binary';
 oc.include_sh 'util/obj_perms_sh.lua' 'UTIL: perms';
-oc.include_sv 'util/ban_sv.lua' 'UTIL: ban_sv'
+oc.include_sv 'util/sourcebans_sv.lua' 'UTIL: sourcebans';
+oc.include_sv 'util/ban_sv.lua' 'UTIL: ban_sv';
 
 print();oc.LoadMsg( '\nCORE\n' );
 oc.include_sv 'core/group_sv.lua' 'CORE: group sv';

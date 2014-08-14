@@ -193,64 +193,33 @@ cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
 -- Ban                                                        --
 ----------------------------------------------------------------
 local cmd = oc.command( 'management', 'ban', function( pl, args )
-	local record = oc.ban.checkSteamID(args.player:SteamID());
+	local record = oc.sb.checkSteamID(args.player:SteamID());
 	if record then
 		oc.notify(pl, oc.cfg.color_error, 'Error! This player is already banned. Unban him and ban him again if you want to overwrite.');
 		return ;
 	end
 	
-	local time = math.floor(os.time() / 60);
-	oc.ban.addRecord({
-		banned_steamid = args.player:SteamID(),
-		banned_name = args.player:Name(),
-		reason = args.reason,
-		admin_steamid = pl and pl:SteamID() or 'CONSOLE',
-		admin_name = pl	and pl:Name() or 'CONSOLE',
-		ban_time = time,
-		unban_time = time + args.len
-	});
-	oc.notify_fancy( player.GetAll(), '#P banned #P for #T.', pl, args.player, args.len );
+	oc.sb.banPlayer( pl, args.player, math.floor(args.len/60), args.reason, function(data, err)
+		print(data, err);
+	end )
+	pl:Kick('Banned: '..args.reason);
+	
+	oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
 end)
 cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'len' { type = 'time' }
 cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
 
 local cmd = oc.command( 'management', 'banid', function( pl, args )
-	local record = oc.ban.checkSteamID(args.steamid);
+	local record = oc.sb.checkSteamID(args.steamid);
 	if record then
 		oc.notify(pl, oc.cfg.color_error, 'Error! This player is already banned. Unban him and ban him again if you want to overwrite.');
 		return ;
 	end
 	
-	local time = math.floor(os.time() / 60);
-	oc.ban.addRecord({
-		banned_steamid = args.steamid,
-		banned_name = 'unknown',
-		reason = args.reason,
-		admin_steamid = pl and pl:SteamID() or 'CONSOLE',
-		admin_name = pl	and pl:Name() or 'CONSOLE',
-		ban_time = time,
-		unban_time = time + args.len
-	});
-	oc.notify_fancy( player.GetAll(), '#P banned #S for #T.', pl, args.steamid, args.len );
-end)
-cmd:addParam 'steamid' { type = 'string' }
-cmd:addParam 'len' { type = 'time' }
-cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
-
-
-local cmd = oc.command( 'management', 'banid', function( pl, args )
-	local time = math.floor(os.time() / 60);
-	oc.ban.addRecord({
-		banned_steamid = args.steamid,
-		banned_name = 'unknown',
-		reason = args.reason,
-		admin_steamid = pl and pl:SteamID() or 'CONSOLE',
-		admin_name = pl	and pl:Name() or 'CONSOLE',
-		ban_time = time,
-		unban_time = time + args.len
-	});
-	oc.notify_fancy( player.GetAll(), '#P banned #S for #T.', pl, args.steamid, args.len );
+	oc.sb.banSteamID( pl, args.steamid, 'John Doe', math.floor(args.len/60), args.reason )
+	
+	oc.notify_fancy( player.GetAll(), '#P banned #S for #T reason #S', pl, args.steamid, args.len, args.reason );
 end)
 cmd:addParam 'steamid' { type = 'string' }
 cmd:addParam 'len' { type = 'time' }
@@ -258,17 +227,17 @@ cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
 
 
 local cmd = oc.command( 'management', 'unban', function( pl, args )
-	local record = oc.ban.checkSteamID( steamid );
+	local record = oc.sb.checkSteamID( args.steamid );
 	if not record then
-		oc.notify(pl, oc.cfg.color_error, 'No active bans for SteamID '..steamid..' found');
+		oc.notify(pl, oc.cfg.color_error, 'No active bans for SteamID \''..args.steamid..'\' found');
 	else
-		oc.ban.delRecord(record.b_id);
-		oc.notify_fancy( player.GetAll(), '#P unbanned #S.', pl, args.steamid .. '('..(record.banned_name or 'unknown')..')' );
+		oc.sb.unbanSteamID(pl, record.id, args.reason);
+		oc.notify_fancy( player.GetAll(), '#P unbanned #S because #S.', pl, args.steamid .. ' ('..(record.name or 'unknown')..')', args.reason );
 	end
 	
 end)
-cmd:addParam 'steamid' { type = 'string', help = 'steamid to unban' }
-
+cmd:addParam 'steamid' { type = 'string' }
+cmd:addParam 'reason' { type = 'string', default = 'none', 'fill_line' }
 
 
 

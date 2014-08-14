@@ -8,6 +8,12 @@ if not oc._db then
 	oc._db = pmysql.newdb( "lastpenguin.com", "penguinwebhost", "pE2SGHXU3eST9qa", "penguinwebhost_oculus", 3306 );
 end
 
+
+oc.data.hostip = GetConVarString('ip');
+oc.data.hostport = GetConVarString('hostport');
+oc.data.hostaddr = oc.data.hostip..':'..oc.data.hostport;
+
+
 -- LOCALS
 local db = oc._db;
 local svid;
@@ -19,7 +25,7 @@ end
 -- INITIALIZATION
 -- 
 local function GetServerID()
-	local data = db:query_sync("SELECT * FROM oc_servers WHERE host_ip = '?'", {GetConVarString('ip')});
+	local data = db:query_sync("SELECT * FROM oc_servers WHERE host_ip = '?'", {oc.data.hostaddr});
 	svid = data[1] and data[1].sv_id;
 end
 
@@ -27,7 +33,7 @@ end
 function oc.data.init()
 	GetServerID();
 	if not svid then
-		db:query_sync("REPLACE INTO oc_servers (host_ip, host_name) VALUES ('?','?')", { GetConVarString("ip"), GetConVarString("hostname") or 'unknown'}, xfn.noop );
+		db:query_sync("REPLACE INTO oc_servers (host_ip, host_name) VALUES ('?','?')", { oc.data.hostaddr, GetConVarString("hostname") or 'unknown'}, xfn.noop );
 		GetServerID();
 	end
 	oc.LoadMsg( 2, 'database initialized' );

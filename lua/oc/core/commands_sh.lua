@@ -296,6 +296,13 @@ else
 	end);
 end
 
+-- strip arguements that have zero length
+oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
+	xfn.filter(args, function(arg)
+		return arg:len() > 0;	
+	end);
+end);
+
 -- auto fill in default values
 oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
 	for k,v in pairs( params )do
@@ -315,7 +322,7 @@ oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
 					args[i] = nil;
 				end
 			else
-				oc.notify( pl, Color(255,155,0), 'ERROR: too many arguements. Expected '..#cmdParams..' got '..#args..' params.' );
+				oc.notify( pl, Color(255,155,0), 'ERROR: too many arguements. Expected '..#params..' got '..#args..' params.' );
 				return false;
 			end
 		end

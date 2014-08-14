@@ -1,6 +1,11 @@
+/*
+
 local db = oc._db;
 
+
 oc.ban = {};
+
+
 
 local highBanId = -1;
 local bans = {};
@@ -66,6 +71,8 @@ function oc.ban.delRecord(b_id, done)
 	db:query('DELETE oc_bans WHERE b_id = ?', {b_id}, done);
 end
 
+
+
 local message = [[
 BAN ID: %s
 PLAYER NAME: %s
@@ -99,3 +106,5 @@ oc.hook.Add('PostGamemodeLoaded', function()
 		return true;
 	end
 end);
+
+*/
