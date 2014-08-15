@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS oc_servers (
 	`host_name` VARCHAR(255) NOT NULL,
 	PRIMARY KEY(`sv_id`),
 	UNIQUE(`host_ip`)
-) ENGINE=InnoDB, AUTO_INCREMENT=128;
+) ENGINE=MyISAM, AUTO_INCREMENT=128;
 
 
 # USERS LINKS UP UID TO STEAMID
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS oc_users (
 	`ip` CHAR(30) NOT NULL,
 	PRIMARY KEY(`u_id`),
 	UNIQUE(`steamid`)
-) ENGINE=InnoDB, AUTO_INCREMENT=128;
+) ENGINE=MyISAM, AUTO_INCREMENT=128;
 
 # PERMISSIONS - THESE ARE GLOBAL UNLESS sv_id IS 0
 CREATE TABLE IF NOT EXISTS oc_user_perms (
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS oc_user_perms (
 	`expires` INT UNSIGNED,
 	`expires_perm` VARCHAR(255),
 	UNIQUE(`u_id`,`sv_id`, `perm`)
-) ENGINE=InnoDB;
+) ENGINE=MyISAM;
 
 # GROUPS - THESE ARE GLOBAL
 CREATE TABLE IF NOT EXISTS oc_groups (
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS oc_groups (
 	`group_name` VARCHAR(40) NOT NULL,
 	`color` BIGINT NOT NULL,
 	PRIMARY KEY(`g_id`)
-) ENGINE=InnoDB, AUTO_INCREMENT=128;
+) ENGINE=MyISAM, AUTO_INCREMENT=128;
 
 # PERMISSIONS - THESE ARE PER-SERVER UNLESS sv_id IS 0
 CREATE TABLE IF NOT EXISTS oc_group_perms (
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS oc_group_perms (
 	`sv_id` INT UNSIGNED NOT NULL,
 	`perm` VARCHAR(100) NOT NULL,
 	UNIQUE(`g_id`,`sv_id`,`perm`)
-) ENGINE=InnoDB;
+) ENGINE=MyISAM;
 
 # USER VARS
 CREATE TABLE IF NOT EXISTS oc_user_vars (
@@ -52,20 +52,7 @@ CREATE TABLE IF NOT EXISTS oc_user_vars (
 	`u_id` INT UNSIGNED NOT NULL,
 	`data` TEXT NOT NULL,
 	UNIQUE(`sv_id`, `u_id`)
-) ENGINE=InnoDB;
-
-# BANS
-CREATE TABLE IF NOT EXISTS oc_bans ( 
-	`b_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-	`banned_steamid` VARCHAR(30) NOT NULL,
-	`banned_name` VARCHAR(30),
-	`reason` VARCHAR(255),
-	`admin_steamid` VARCHAR(30),
-	`admin_name` VARCHAR(30),
-	`ban_time` INT UNSIGNED NOT NULL,
-	`unban_time` INT UNSIGNED NOT NULL,
-	PRIMARY KEY(`b_id`)
-) ENGINE=InnoDB;
+) ENGINE=MyISAM;
 
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (0,0,'user',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (128,20,'admin',0);
