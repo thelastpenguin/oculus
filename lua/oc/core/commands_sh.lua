@@ -256,6 +256,8 @@ function oc.RunCommand( pl, meta, args )
 	local processed = {};
 	for i = 1, #args do
 		local arg = args[i];
+		if not arg then return end -- this should never happen but somehow it does on occasion
+		
 		local param = params[i];
 		local pmeta = oc.getParamType( param.type );
 		if not pmeta then
@@ -266,7 +268,7 @@ function oc.RunCommand( pl, meta, args )
 		local succ, narg = pmeta.parse( arg, param, pl );
 		
 		if not succ then
-			oc.notify( pl, oc.cfg.color_error, 'PARSE ERROR: Failed to parse arg ('..i..') '..narg..'. ', narg );
+			oc.notify( pl, oc.cfg.color_error, 'PARSE ERROR: Failed to parse arg ('..i..') '..pmeta.pid..'. ', arg );
 			return ;
 		end
 		
