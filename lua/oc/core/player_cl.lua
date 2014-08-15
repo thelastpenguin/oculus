@@ -36,19 +36,6 @@ end
 function player_mt:loadInheritance()
 	-- load primary usergroup
 	self.primaryGroup = oc.g(self:getPermNumber('group.primary') or oc.cfg.group_user) or oc.g(oc.cfg.group_user);
-
-	-- load secondary user groups
-	local groupids = self:getPerm('group.secondary');
-	if groupids then
-		local groups = {};
-		for k,v in pairs(groupids)do
-			local num = tonumber(v, 16);
-			if num then
-				groups[#groups+1] = oc.g(num);
-			end
-		end
-		self.groups = groups;
-	end
 end
 
 function player_mt:getImmunity() 
@@ -67,13 +54,6 @@ function player_mt:getPerm( perm )
 	if self.primaryGroup then
 		res = self.primaryGroup:getPerm(perm);
 		if res then return res end
-	end
-	
-	if self.groups then
-		for k,v in ipairs(self.groups) do
-			res = v:getPerm(perm);
-			if res then return res end
-		end
 	end
 end
 function player_mt:getPermString(perm)

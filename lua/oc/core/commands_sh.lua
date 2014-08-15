@@ -245,10 +245,18 @@ function oc.RunCommand( pl, meta, args )
 	local succ = oc.hook.Call( 'ProcessCMDArgs', pl, params, args );
 	if succ == false then return end
 	
+	local paramsExpected = 0;
+	for k,v in pairs(params)do
+		if not v.optional then
+			paramsExpected = paramsExpected + 1;
+		end
+	end
+	
 	if #params > #args then
 		oc.notify(pl, oc.cfg.color_error, 'PARSE ERROR: too few arguements. Got ' .. #args .. ' expected ' .. #params );
 		return ;
 	end
+	
 	local processed = {};
 	for i = 1, #args do
 		local arg = args[i];
@@ -299,7 +307,7 @@ end
 -- strip arguements that have zero length
 oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
 	xfn.filter(args, function(arg)
-		return arg:len() > 0;	
+		return arg:len() > 0;
 	end);
 end);
 

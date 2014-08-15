@@ -70,7 +70,11 @@ function oc.AutocompleteCommand( pl, text_arg )
 			
 			if #res == 0 then
 				if arg then table.insert(res, arg) end
-				table.insert(res, '<'..(paramMeta.help or (paramMeta.type ..':'..paramMeta.pid))..'>');
+				local default = (paramMeta.type ..':'..paramMeta.pid)
+				if paramMeta.optional then
+					default = '[optional: '..default..']';
+				end
+				table.insert(res, '<'..(paramMeta.help or default)..'>');
 			end
 			
 		end

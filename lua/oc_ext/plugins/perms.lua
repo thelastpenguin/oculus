@@ -1,47 +1,3 @@
--- group add perm
-local cmd = oc.command( 'permissions', 'groupaddlocalperm', function( pl, args )
-	args.group:addPerm(args.perm, false);
-	oc.notify_fancy( player.GetAll(), '#P granted local permission #S to #G', pl, args.perm, args.group );
-end)
-cmd:setHelp 'grant the group local access to the specified permission'
-cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
-
-
--- group del perm
-local cmd = oc.command( 'permissions', 'groupdellocalperm', function( pl, args )
-	args.group:delPerm(args.perm, false);
-	oc.notify_fancy( player.GetAll(), '#P deleted local permission #S from #G', pl, args.perm, args.group );
-end)
-cmd:setHelp 'deny the group local access to the specified permission'
-cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
-
-
-
-
--- group add perm
-local cmd = oc.command( 'permissions', 'groupaddglobalperm', function( pl, args )
-	args.group:addPerm(args.perm, true);
-	oc.notify_fancy( player.GetAll(), '#P granted global permission #S to #G', pl, args.perm, args.group );
-end)
-cmd:setHelp 'grant the group global access to the specified permission'
-cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
-
-
--- group del perm
-local cmd = oc.command( 'permissions', 'groupdelglobalperm', function( pl, args )
-	args.group:delPerm(args.perm, true);
-	oc.notify_fancy( player.GetAll(), '#P deleted global permission #S from #G', pl, args.perm, args.group );
-end)
-cmd:setHelp 'deny the group global access to the specified permission'
-cmd:addParam 'group' { type = 'group', help = 'target group' }
-cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
-
-
-
-
 
 -- player add perm
 local cmd = oc.command( 'permissions', 'playeraddlocalperm', function( pl, args )
@@ -85,61 +41,49 @@ cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', op
 
 -- player set primary group
 local cmd = oc.command( 'permissions', 'playersetlocalgroup', function( pl, args )
-	oc.p(args.player):setGroup(args.group.gid, false);
-	oc.notify_fancy( player.GetAll(), '#P set #P\'s primary local group to #G', pl, args.player, args.group );
+	if (args.time or args.fallback) and not (args.time and args.fallback) then
+		oc.notify(pl, oc.cfg.color_error, 'Error! You must provide both time and fallback if you choose to use this feature');
+		return ;
+	end
+	if args.time then
+		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary local group to #G for #T with fallback group #G', pl, args.player, args.group, args.time, args.fallback );
+		oc.p(args.player):setGroup(args.group.gid, false, function()
+			oc.p(args.player):addTempPerm(string.format('group.primary.%x', args.group.gid), string.format('group.primary.%x', args.fallback.gid), os.time() + args.time, false );
+		end);
+	else
+		oc.p(args.player):setGroup(args.group.gid, false);
+		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary local group to #G', pl, args.player, args.group );
+	end
+	
 end)
 cmd:setHelp 'set the player\'s local group'
 cmd:addParam 'player' { type = 'player', help = 'target player' }
 cmd:addParam 'group' { type = 'group', help = 'primary group' }
+cmd:addParam 'time' { type = 'time', 'optional' }
+cmd:addParam 'fallback' { type = 'group', 'optional' }
 
 -- player set primary group
 local cmd = oc.command( 'permissions', 'playersetglobalgroup', function( pl, args )
-	oc.p(args.player):setGroup(args.group.gid, true);
-	oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G', pl, args.player, args.group );
+	if (args.time or args.fallback) and not (args.time and args.fallback) then
+		oc.notify(pl, oc.cfg.color_error, 'Error! You must provide both time and fallback if you choose to use this feature');
+		return ;
+	end
+	if args.time then
+		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G for #T with fallback group #G', pl, args.player, args.group, args.time, args.fallback );
+		oc.p(args.player):setGroup(args.group.gid, true, function()
+			oc.p(args.player):addTempPerm(string.format('group.primary.%x', args.group.gid), string.format('group.primary.%x', args.fallback.gid), os.time() + args.time, true );
+		end);
+	else
+		oc.p(args.player):setGroup(args.group.gid, true);
+		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G', pl, args.player, args.group );
+	end
+	
 end)
 cmd:setHelp 'set the player\'s global group'
 cmd:addParam 'player' { type = 'player', help = 'target player' }
 cmd:addParam 'group' { type = 'group', help = 'primary group' }
-
-
-
--- player add secondary group
-local cmd = oc.command( 'permissions', 'playeraddlocalgroup', function( pl, args )
-	oc.p(args.player):addGroup(args.group.gid, false);
-	oc.notify_fancy( player.GetAll(), '#P added seconary local group #G for #P', pl, args.group, args.player );
-end)
-cmd:setHelp 'add secondary local group'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
-cmd:addParam 'group' { type = 'group', help = 'secondary group' }
-
--- player add secondary group
-local cmd = oc.command( 'permissions', 'playeraddglobalgroup', function( pl, args )
-	oc.p(args.player):addGroup(args.group.gid, true);
-	oc.notify_fancy( player.GetAll(), '#P added secondary global group #G for #P', pl, args.group, args.player );
-end)
-cmd:setHelp 'add secondary global group'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
-cmd:addParam 'group' { type = 'group', help = 'secondary group' }
-
-
-
--- player del secondary group
-local cmd = oc.command( 'permissions', 'playerdellocalgroup', function( pl, args )
-	oc.p(args.player):delGroup(args.group.gid, false);
-	oc.notify_fancy( player.GetAll(), '#P added seconary local group #G for #P', pl, args.group, args.player );
-end)
-cmd:setHelp 'del secondary local group'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
-cmd:addParam 'group' { type = 'group', help = 'secondary group' }
-
--- player del secondary group
-local cmd = oc.command( 'permissions', 'playerdelglobalgroup', function( pl, args )
-	oc.p(args.player):delGroup(args.group.gid, true);
-	oc.notify_fancy( player.GetAll(), '#P removed secondary global group #G for #P', pl, args.group, args.player );
-end)
-cmd:setHelp 'del secondary global group'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
-cmd:addParam 'group' { type = 'group', help = 'secondary group' }
+cmd:addParam 'time' { type = 'time', 'optional' }
+cmd:addParam 'fallback' { type = 'group', 'optional' }
 
 
 -- player get info

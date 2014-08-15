@@ -89,16 +89,6 @@ function player_mt:loadInheritance()
 		self.player:SetUserGroup(self.primaryGroup.name);
 	end
 	
-	-- load secondary user groups
-	local groupids = self:getPerm('group.secondary');
-	if groupids then
-		local groups = {};
-		for k,v in pairs(groupids)do
-			local num = tonumber(v, 16);
-			groups[#groups+1] = oc.g(num);
-		end
-		self.groups = groups;
-	end
 end
 
 function player_mt:setGroup( group, isGlobal, done )
@@ -109,20 +99,6 @@ function player_mt:setGroup( group, isGlobal, done )
 		self:loadInheritance();
 		if done then done() end
 	end);
-end
-
-function player_mt:addGroup( group, isGlobal, done )
-	self:addPerm( 'group.extra.'..group, isGlobal, function()
-		self:loadInheritance();
-		if done then done() end
-	end)
-end
-
-function player_mt:delGroup( group, isGlobal, done )
-	self:delPerm( string.format('group.extra.%x', group), isGlobal, function()
-		self:loadInheritance();
-		if done then done() end	
-	end);	
 end
 
 function player_mt:getImmunity() 
@@ -205,12 +181,6 @@ function player_mt:getPerm( perm )
 		if res then return res end
 	end
 	
-	if self.groups then
-		for k,v in ipairs(self.groups) do
-			res = v:getPerm(perm);
-			if res then return res end
-		end
-	end
 end
 function player_mt:getPermString(perm)
 	local res = self:getPerm(perm);
@@ -234,6 +204,15 @@ function player_mt:addPerm(perm, isGlobal, done)
 		self:fetchPerms( isGlobal, xfn.fn_deafen(done or xfn.noop));	
 	end);
 end
+
+function player_mt:addTempPerm( perm, fallback, time, isGlobal, done)
+	return oc.data.userPermSetExpire( isGlobal and 0 or oc.data.svid, self.uid, perm, time, fallback, done);
+end
+
+function player_mt:delTempPerm( perm, isGlobal, done)
+	return oc.data.userPermSetExpire( isGlobal and 0 or oc.data.svid, self.uid, perm, done);
+end
+
 function player_mt:addPermNumber(perm, value, isGlobal, done)
 	return self:addPerm(perm..'.'..tonumber(value, 16), isGlobal, done);
 end
