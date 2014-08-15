@@ -14,7 +14,7 @@ local queries = {
 	INSERT_BAN_BY_STEAMID_CONSOLE = 'INSERT INTO '..prefix..'bans (admin_ip, steam, name, reason, create_time, length) VALUES (\'?\', \'?\', \'?\', \'?\', ?, ?)',
 	INSERT_BAN_BY_STEAMID_CONSOLE_IP = 'INSERT INTO '..prefix..'bans (admin_ip, steam, ip, name, reason, create_time, length) VALUES (\'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
 	SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (length = 0 OR (create_time + length*60) > ?)',
-	UNBAN_BY_STEAMID_CONSOLE = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
+	UNBAN_BY_STEAMID_CONSOLE = 'UPDATE '..prefix..'bans SET unban_reason = \'?\', unban_time = ? WHERE id = ?',
 	UNBAN_BY_STEAMID = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
 }
 
@@ -62,7 +62,7 @@ end
 
 -- I hate my life
 function oc.sb.banSteamID( admin, player_steamid, player_name, length, reason, done)
-	if admin then
+	if IsValid(admin) then
 		oc.sb.playerGetAdminId(admin, function(id)
 			if not id then
 				error('failed to load admin id for ' .. admin:SteamID());
@@ -82,7 +82,7 @@ function oc.sb.banSteamID( admin, player_steamid, player_name, length, reason, d
 end
 
 function oc.sb.banPlayer( admin, player, length, reason, done )
-	if admin then
+	if IsValid(admin) then
 		oc.sb.playerGetAdminId(admin, function(id)
 			if not id then
 				error('failed to load admin id for ' .. admin:SteamID());
@@ -102,7 +102,7 @@ function oc.sb.banPlayer( admin, player, length, reason, done )
 end
 
 function oc.sb.unbanSteamID( admin, banid, reason, done )
-	if admin then
+	if IsValid(admin) then
 		oc.sb.playerGetAdminId(admin, function(id)
 			if not id then
 				error('failed to load admin id for ' .. admin:SteamID());

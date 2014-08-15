@@ -116,10 +116,6 @@ if SERVER then
 		output_normal(1);
 		
 		oc.notify(pl, unpack(message) );
-		
-		if shouldConsoleSee(pl) then
-			oc.consoleAddText(unpack(message));
-		end
 	end
 	
 elseif CLIENT then
