@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS oc_user_perms (
 	`sv_id` INT UNSIGNED NOT NULL,
 	`u_id` INT UNSIGNED NOT NULL,
 	`perm` VARCHAR(255) NOT NULL,
+	`expires` INT UNSIGNED,
+	`expires_perm` VARCHAR(255),
 	UNIQUE(`u_id`,`sv_id`, `perm`)
 ) ENGINE=InnoDB;
 

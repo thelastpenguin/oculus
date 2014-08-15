@@ -38,6 +38,11 @@ function oc.data.init()
 	end
 	oc.LoadMsg( 2, 'database initialized' );
 	oc.LoadMsg( 2, 'server id: '..svid );
+	
+	db:query_sync("UPDATE oc_user_perms SET perm=expires_perm, expires_perm = NULL, expires = NULL WHERE expires<?", {os.time()});
+	
+	oc.LoadMsg( 2, 'Rewrote Expired Permissions' );
+	
 	data.svid = svid;
 end
 oc.data.init();
@@ -71,11 +76,18 @@ function oc.data.userFetchPerms( svid, uid, done )
 end
 
 function oc.data.userAddPerm( svid, uid, perm, done )
-	return db:query_ex("REPLACE INTO oc_user_perms VALUES(?,?,'?')", {svid, uid, perm}, done );
+	return db:query_ex("REPLACE INTO oc_user_perms (sv_id, u_id, perm)VALUES(?,?,'?')", {svid, uid, perm}, done );
 end
 
 function oc.data.userDelPerm( svid, uid, perm, done )
 	return db:query_ex("DELETE FROM oc_user_perms WHERE sv_id=? AND u_id=? AND (perm = '?' OR perm LIKE '?.%')", {svid, uid, perm, perm}, done );
+end
+
+function oc.data.userPermSetExpire( svid, uid, perm, expires_time, expires_perm, done )
+	return db:query_ex('UPDATE oc_user_perms SET expires=?, expires_perm=\'?\' WHERE sv_id=? AND u_id=? AND perm=\'?\'', {expires_time, expires_perm, svid, uid, perm}, done);
+end
+function oc.data.userPermClearExpire( svid, uid, perm, done )
+	return db:query_ex('UPDATE oc_user_perms SET expires=NULL, expires_perm=NULL WHERE sv_id=? AND u_id=? AND perm=\'?\'', {svid, uid, perm}, done);
 end
 
 function oc.data.userInitVars( svid, uid, done )

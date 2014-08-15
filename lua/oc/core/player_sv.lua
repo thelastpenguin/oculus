@@ -224,7 +224,7 @@ end
 
 
 function player_mt:delPerm(perm, isGlobal, done)
-	oc.data.groupDelPerm( isGlobal and 0 or oc.data.svid, self.gid, perm, function()
+	oc.data.userDelPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, function()
 		self:fetchPerms(isGlobal, done);
 	end);
 end
