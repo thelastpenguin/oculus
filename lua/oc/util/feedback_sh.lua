@@ -1,9 +1,36 @@
 local net , type = _G.net, _G.type ;
 local oc = _G.oc;
 
+function oc.consoleAddText(...)
+	local arg = {...};
+	local col = color_white;
+	for k,v in pairs(arg) do
+		local t = type(v);
+		if t == 'table' and v.r then
+			col = v;
+		elseif t == 'Player' then
+			MsgC( team.GetColor(v:Team()), v:Name());
+		elseif t == 'string' then
+			MsgC( col, tostring(v));
+		end
+	end
+	MsgN();
+end
+
 if SERVER then
 	
-	util.AddNetworkString( 'oc_notify' );
+	local function shouldConsoleSee( tbl )
+		local t = type(tbl);
+		if t == 'table' then
+			return #tbl == #player.GetAll();
+		elseif t == 'Entity' then
+			return not IsValid(tbl);
+		end
+		return false;
+	end
+	
+	
+	util.AddNetworkString( 'oc_notify_con' );
 	util.AddNetworkString( 'oc_notify_ex' );
 	local function writemessage( arg )
 		for _, v in ipairs( arg )do
@@ -22,34 +49,26 @@ if SERVER then
 		net.WriteUInt( 0, 4 );
 	end
 	
-	function oc.notify_r( pl, ... )
-		local arg = {...};
-		net.Start( 'oc_notify' );
-			writemessage( arg );
-		net.Send( pl );
-		
-		-- properly output to console
-		if type(pl) == 'Player' and not IsValid(pl) then
-			for k,v in pairs(arg)do
-				if type(v) == 'string' then
-					Msg(v);
-				elseif type(v) == 'Player' then
-					Msg(v:Name());
-				end
-			end
-			Msg('\n');
-		end
-		
-	end
 	function oc.notify( pl, ... )
 		local arg = {...}
 		net.Start( 'oc_notify_ex' );
 			writemessage( arg );
 		net.Send( pl );
+		
+		if shouldConsoleSee(pl) then
+			oc.consoleAddText(...);
+		end
+	end
+	
+	function oc.notify_con( pl, ... )
+		local arg = {...};
+		net.Start('oc_notify_con');
+			writemessage( arg );
+		net.Send(pl);
 	end
 	
 	oc.notify_all = function(...) oc.notify( player.GetAll(), ... ) end
-	
+
 	
 	local fancy_formats = {};
 	oc.fancy_formats = fancy_formats;
@@ -62,29 +81,17 @@ if SERVER then
 			return param[paramc];
 		end
 		
+		local message = {};
+		
 		local output_special, output_normal ;
 		function output_normal( ind )
 			local stop = string.find( format, '#', ind );
+			message[#message+1] = color_white;
 			if stop then
-				return Color(255,255,255), string.sub( format, ind, stop - 1 ), output_special( stop + 1 );
+				message[#message+1] = string.sub( format, ind, stop - 1 )
+				output_special(stop + 1);
 			else
-				return Color(255,255,255), string.sub( format, ind );
-			end
-		end
-		
-		local function arg_merge( a, ... )
-			if type( a ) == 'function' then
-				return arg_merge( a() ), arg_merge( ... );
-			else
-				return a, arg_merge( ... );
-			end
-		end
-		
-		local function pushAll( func, a, ... )
-			if a then
-				return a, pushAll( func, ... );
-			else
-				return func();
+				message[#message+1] = string.sub( format, ind );
 			end
 		end
 		
@@ -95,15 +102,24 @@ if SERVER then
 			if not code then return end
 			local formatter = fancy_formats[code];
 			if formatter then
-				--local test = { formatter( arg ) , output_normal( ind + 1 ) };
-				return pushAll( function() 
-					return output_normal( ind + 1 )
-				end, formatter( arg ) );
+				local res = {formatter(arg)};
+				for i = 1, #res do
+					message[#message+1] = res[i];
+				end
+				output_normal(ind+1);
 			else
-				return Color(255,0,0), 'ERROR UNEXPECTED \''..code..'\'', output_normal( ind + 1 );
+				message[#message+1] = oc.cfg.color_error;
+				message[#message+1] = 'ERROR UNEXPECTED \''..code..'\'';
+				output_normal(ind + 1);
 			end
 		end
-		oc.notify( pl, output_normal( 1 ) );
+		output_normal(1);
+		
+		oc.notify(pl, unpack(message) );
+		
+		if shouldConsoleSee(pl) then
+			oc.consoleAddText(unpack(message));
+		end
 	end
 	
 elseif CLIENT then
@@ -125,14 +141,13 @@ elseif CLIENT then
 		return value, readmessage( );
 	end
 	
-	net.Receive( 'oc_notify', function() 
-		chat.AddText( readmessage() );
+	local mc, mcd, white = oc.cfg.mod_color, oc.cfg.mod_color_d, Color(255,255,255); 
+	net.Receive( 'oc_notify_con', function()
+		oc.consoleAddText(mcd, '| ', white, readmessage());
 	end);
 	
-	local mc, mcd, white = oc.cfg.mod_color, oc.cfg.mod_color_d, Color(255,255,255); 
 	net.Receive( 'oc_notify_ex', function()
-		surface.PlaySound('sound/p_theme/beep-21.mp3');
-		chat.AddText( mcd, '| ', white, readmessage( ) );	
+		chat.AddText(mcd, '| ', white, readmessage( ));	
 	end);
 	
 end

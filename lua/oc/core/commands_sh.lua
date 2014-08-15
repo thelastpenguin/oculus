@@ -245,16 +245,12 @@ function oc.RunCommand( pl, meta, args )
 	local succ = oc.hook.Call( 'ProcessCMDArgs', pl, params, args );
 	if succ == false then return end
 	
-	local paramsExpected = 0;
-	for k,v in pairs(params)do
-		if not v.optional then
-			paramsExpected = paramsExpected + 1;
+	-- make some arguments optional
+	for i = #args+1, #params do
+		if not params[i].optional then
+			oc.notify(pl, oc.cfg.color_error, 'PARSE ERROR: too few arguements. Got ' .. #args .. ' expected ' .. #params );
+			return ;
 		end
-	end
-	
-	if #params > #args then
-		oc.notify(pl, oc.cfg.color_error, 'PARSE ERROR: too few arguements. Got ' .. #args .. ' expected ' .. #params );
-		return ;
 	end
 	
 	local processed = {};
@@ -448,12 +444,17 @@ end
 
 oc.addParamType( 'player', TYPE );
 oc.fancy_formats['P'] = function( players )
+	-- special case for console
+	if type(players) == 'Entity' and not IsValid(players) then
+		return Color(0,0,0), '(Console)';
+	end
 	
 	if type( players ) ~= 'table' then
 		players = { players };
 	end
-	local addName, addSep ;
 	
+	local addName, addSep ;
+
 	local playerCount = #players;
 	function addSep( index )
 		if index == playerCount then
@@ -467,11 +468,7 @@ oc.fancy_formats['P'] = function( players )
 	function addName( index )
 		local ply = players[index];
 		if type( ply ) == 'Player' then
-			if not IsValid(ply) then
-				return Color(0,0,0), '(Console)'
-			else
-				return team.GetColor( ply:Team() ) or color_white, ply:Name(), addSep( index ) ;
-			end
+			return team.GetColor( ply:Team() ) or color_white, ply:Name(), addSep( index ) ;
 		elseif ply then
 			return addName( index + 1 );
 		end
