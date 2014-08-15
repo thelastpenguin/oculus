@@ -370,7 +370,7 @@ TYPE.parse = function( arg, param )
 		return true, tonumber(arg);
 	end
 	if param.forever and arg == 'forever' then
-		return true, -1;
+		return true, 0;
 	end
 	
 	local s = 0;
@@ -381,7 +381,7 @@ TYPE.parse = function( arg, param )
 end
 oc.addParamType( 'time', TYPE );
 oc.fancy_formats['T'] = function( number )
-	if number == -1 then
+	if number == 0 then
 		return oc.cfg.color_time, 'forever';
 	end
 	

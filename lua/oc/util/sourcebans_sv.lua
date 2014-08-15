@@ -10,8 +10,10 @@ local queries = {
 	INSERT_ADMIN = 'INSERT INTO '..prefix..'admins (name, identity, create_time) VALUES (\'?\',\'?\', ?)',
 	UPDATE_ADMIN = 'UPDATE '..prefix..'admins SET name = \'?\' WHERE identity = \'?\'',
 	INSERT_BAN_BY_STEAMID = 'INSERT INTO '..prefix..'bans (admin_id, admin_ip, steam, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', ?, ?)',
+	INSERT_BAN_BY_STEAMID_IP = 'INSERT INTO '..prefix..'bans (admin_id, admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
 	INSERT_BAN_BY_STEAMID_CONSOLE = 'INSERT INTO '..prefix..'bans (admin_ip, steam, name, reason, create_time, length) VALUES (\'?\', \'?\', \'?\', \'?\', ?, ?)',
-	SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (create_time + length*60) > ?',
+	INSERT_BAN_BY_STEAMID_CONSOLE_IP = 'INSERT INTO '..prefix..'bans (admin_ip, steam, ip, name, reason, create_time, length) VALUES (\'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
+	SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (length = 0 OR (create_time + length*60) > ?)',
 	UNBAN_BY_STEAMID_CONSOLE = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
 	UNBAN_BY_STEAMID = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
 }
@@ -80,7 +82,23 @@ function oc.sb.banSteamID( admin, player_steamid, player_name, length, reason, d
 end
 
 function oc.sb.banPlayer( admin, player, length, reason, done )
-	oc.sb.banSteamID( admin, player:SteamID(), player:Name(), length, reason, done);
+	if admin then
+		oc.sb.playerGetAdminId(admin, function(id)
+			if not id then
+				error('failed to load admin id for ' .. admin:SteamID());
+			end
+			
+			dprint('admin id is: '..id);
+			db:query_ex(queries.INSERT_BAN_BY_STEAMID_IP, {id, admin:IPAddress(), player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
+				oc.sb.syncBans(done);	
+			end);
+		end);
+		
+	else
+		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE_IP, {oc.sb.hostip, player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
+			oc.sb.syncBans(done);	
+		end);
+	end
 end
 
 function oc.sb.unbanSteamID( admin, banid, reason, done )
@@ -125,7 +143,8 @@ oc.sb.syncBans();
 function oc.sb.checkSteamID( steamid )
 	local curtime = os.time();
 	for id, ban in pairs(oc.sb.bans)do
-		if ban.steam == steamid and ban.create_time + ban.length * 60 > curtime and not ban.unban_time then
+		local length = tonumber(ban.length);
+		if ban.steam == steamid and (length == 0 or ban.create_time + length * 60 > curtime) and not ban.unban_time then
 			return ban;
 		end
 	end

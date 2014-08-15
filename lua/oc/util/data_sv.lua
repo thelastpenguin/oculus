@@ -46,7 +46,7 @@ oc.data.init();
 -- USER MANAGMENT
 --
 function oc.data.userFetchID( steamid, done )
-	return db:query_ex("SELECT u_id, displayName FROM oc_users WHERE steamid='?'",{steamid}, function(data)
+	return db:query_ex("SELECT u_id FROM oc_users WHERE steamid='?'",{steamid}, function(data)
 		if data and data[1] then
 			done(data[1].u_id);
 		else
@@ -55,10 +55,10 @@ function oc.data.userFetchID( steamid, done )
 	end);
 end
 function oc.data.userCreate( pl, done )
-	return db:query_ex("REPLACE INTO oc_users (steamid,displayName)VALUES('?','?')", {pl:SteamID(), pl:Name()}, done);
+	return db:query_ex("REPLACE INTO oc_users (steamid,displayName,ip)VALUES('?','?','?')", {pl:SteamID(), pl:Name(), pl:IPAddress()}, done);
 end
 function oc.data.userUpdate( uid, pl, done )
-	return db:query_ex("UPDATE oc_users SET displayName='?' WHERE u_id=?", {pl:Name(), uid}, done);
+	return db:query_ex("UPDATE oc_users SET displayName='?', ip='?' WHERE u_id=?", {pl:Name(), pl:IPAddress(), uid}, done);
 end
 
 function oc.data.userFetchPerms( svid, uid, done )
