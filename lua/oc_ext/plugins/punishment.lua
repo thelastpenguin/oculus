@@ -1,9 +1,3 @@
-local PLUGIN = {};
-function PLUGIN:PlayerSpawn( pl )
-	oc.notify_all( 'Player ', pl, ' spawned.' );
-end
-oc.RegisterPlugin( 'test', PLUGIN );
-
 ----------------------------------------------------------------
 -- Freeze                                                     --
 ----------------------------------------------------------------
