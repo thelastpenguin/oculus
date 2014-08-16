@@ -130,7 +130,7 @@ end
 	 	COMMAND PARSING FROM CHAT
 	 ====================================================================== */
 oc.hook.Add( 'PlayerSay', function( pl, text )
-	if text:sub( 1, 1 ) == '!' or text:sub( 1, 1 ) == '/' then
+	if text:sub( 1, 1 ) == '!' then
 		
 		local cmd = string.match( text, '%a+', 2 );
 		if not cmd then 
