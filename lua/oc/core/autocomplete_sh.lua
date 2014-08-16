@@ -6,7 +6,7 @@ local string = string ;
 function oc.AutocompleteCommand( pl, text_arg )
 	
 	-- properly descide which arguement we are currently intrested in
-	local rawArgs = oc.ParseString(text_arg);
+	local rawArgs = {oc.parseLine(text_arg)};
 	
 	local argIndex = #rawArgs
 	local arg

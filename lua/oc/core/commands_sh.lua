@@ -166,7 +166,7 @@ function oc.RunChatCommand( pl, text_cmd, text_arg )
 		return ;
 	end
 	
-	local args = oc.ParseString( text_arg );
+	local args = oc.parseLine( text_arg );
 	oc.RunCommand( pl, meta, args );
 end
 
@@ -268,7 +268,7 @@ function oc.RunCommand( pl, meta, args )
 		local succ, narg = pmeta.parse( arg, param, pl );
 		
 		if not succ then
-			oc.notify( pl, oc.cfg.color_error, 'PARSE ERROR: Failed to parse arg ('..i..') '..pmeta.pid..'. ', arg );
+			oc.notify( pl, oc.cfg.color_error, 'PARSE ERROR: Failed to parse arg ('..i..') '..param.pid..'. ', arg );
 			return ;
 		end
 		
