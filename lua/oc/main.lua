@@ -32,8 +32,17 @@ end
 --
 -- INCLUDE FUNCTION WRAPPER
 --
-local function wrapper( func, shouldPrint )
-	return oc.fn_Curry( oc.fn_Parallel( oc.fn_IF( shouldPrint, function( path, msg ) oc.LoadMsg( 0, msg ) end ),func ), 2 );
+local function wrapper( func, doPrint )
+	return function(...)
+		func(...);
+		if doPrint then
+			return function(msg)
+				oc.LoadMsg(msg);
+			end
+		else
+			return xfn.noop;
+		end
+	end
 end
 
 oc.include_sh = wrapper( oc._include_sh, function() return true end );

@@ -29,7 +29,7 @@ do
 	end
 end
 
-function oc.LoadPlugins( dir, load )
+function oc.LoadPlugins( dir )
 	
 	local p ;
 	local fol = dir ;
@@ -56,7 +56,35 @@ function oc.LoadPlugins( dir, load )
 	
 end
 
+function oc.LoadModules( fol )
+	local _, dirs = file.Find(fol..'*', 'LUA');
+	
+	local p;
+	for _, dir in pairs(dirs)do
+		p = fol .. dir..'/';
+		oc.LoadMsg(2, 'MODULE: '..dir);
+		
+		local init_cl = file.Exists( p..'init_cl.lua', 'LUA');
+		local init_sv = file.Exists( p..'init_sv.lua', 'LUA');
+		local init_sh = file.Exists( p..'init_sh.lua', 'LUA');
+		
+		if init_cl then
+			oc.include_cl( p..'init_cl.lua' ) ('    init_cl.lua');
+		end
+		if init_sv then
+			oc.include_sv( p..'init_sv.lua' ) ('    init_sv.lua');
+		end
+		if init_sh then
+			oc.include_sh( p..'init_sh.lua' ) ('    init_sh.lua');
+		end
+		
+	end
+end
+
 oc.LoadPlugins( 'oc_ext/plugins/' );
+
+oc.LoadMsg('\nLOADING MODULES\n');
+oc.LoadModules( 'oc_ext/modules/' );
 
 -- use PostPluginsLoaded to create hooks.
 oc.hook.Add( 'PluginsLoaded', oc.HookPluginField( 'PostPluginsLoaded' ) );

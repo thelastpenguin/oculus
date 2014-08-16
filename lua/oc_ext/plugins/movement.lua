@@ -32,9 +32,6 @@ local function playerSend( from, to, force )
 
 		tr = util.TraceEntity( t, from )
 	end
-
-	from.ulx_prevpos = from:GetPos()
-	from.ulx_prevang = from:EyeAngles()
 	return tr.HitPos
 end
 
@@ -47,6 +44,7 @@ local cmd = oc.command( 'movement', 'goto', function( pl, args )
 		oc.notify(oc.cfg.color_error, 'No where to put you! Go into noclip to bipass this.');
 	else
 		oc.notify_fancy( player.GetAll(), '#P went to #P.', pl, args.target );
+		pl:SetPos(succ);
 	end
 end)
 cmd:addParam 'target' { type = 'player' }
@@ -60,6 +58,7 @@ local cmd = oc.command( 'movement', 'bring', function( pl, args )
 		oc.notify(oc.cfg.color_error, 'No where to put them! Noclip target to bipass this.');
 	else
 		oc.notify_fancy( player.GetAll(), '#P brought #P.', pl, args.target );
+		pl:SetPos(succ);
 	end
 end)
 cmd:addParam 'target' { type = 'player' }
@@ -67,12 +66,13 @@ cmd:addParam 'target' { type = 'player' }
 ----------------------------------------------------------------
 -- Send                                                       --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'bring', function( pl, args )
+local cmd = oc.command( 'movement', 'send', function( pl, args )
 	local succ = playerSend(args.send, args.to, args.send:GetMoveType() == MOVETYPE_NOCLIP);
 	if not succ then
 		oc.notify(oc.cfg.color_error, 'No where to put them! Noclip the player you are sending to bipass this.');
 	else
 		oc.notify_fancy( player.GetAll(), '#P sent #P to #P.', pl, args.send, args.to );
+		args.send:SetPos(succ);
 	end
 end)
 cmd:addParam 'send' { type = 'player', help = 'player to send' }
