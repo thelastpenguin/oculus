@@ -21,6 +21,10 @@ cmd:addParam 'players' { type = 'player', 'multi' }
 ----------------------------------------------------------------
 local specPlayers = {}
 local cmd = oc.command( 'management', 'spectate', function( pl, args )
+	if !pl:Alive() then
+		oc.notify(pl, oc.cfg.color_error, 'Please respawn before attempting to spectate.');
+		return
+	end
 	oc.ForEach( args.players, function( t )
 		if !pl.Spec then
 			pl.PreSpecPos = pl:GetPos();
@@ -33,7 +37,6 @@ local cmd = oc.command( 'management', 'spectate', function( pl, args )
 
 			pl.Spec = true;
 		else
-
 			pl:UnSpectate()
 			pl:Spawn()
 			pl:SetPos( pl.PreSpecPos )
@@ -44,6 +47,19 @@ local cmd = oc.command( 'management', 'spectate', function( pl, args )
 	end);
 end)
 cmd:addParam 'players' { type = 'player', 'multi' }
+
+local cmd = oc.command( 'management', 'unspectate', function( pl, args )
+	if pl.Spec then
+		pl:UnSpectate()
+		pl:Spawn()
+		pl:SetPos( pl.PreSpecPos )
+
+		pl.PreSpecPos = nil;
+		pl.Spec = nil;
+	else
+		oc.notify(pl, oc.cfg.color_error, 'You\'re not spectating anyone!');
+	end
+end)
 
 hook.Add( "Think", "oc.spectate.Think", function()
 	for k, v in pairs( specPlayers ) do
@@ -98,6 +114,10 @@ local cmd = oc.command( 'management', 'slay', function( pl, args )
 	local targname = "dissolveme"..tostring({});
 	local drift_dir = Vector(0,0,10); -- make em float up
 	for _, targ in pairs(args.players)do
+		if !targ:Alive() then
+			oc.notify(pl, oc.cfg.color_error, 'Your target is already dead!');
+			return
+		end
 		targ:Kill( );
 		local rag = ragdollPlayer(targ);
 		rag:SetKeyValue("targetname",targname)
@@ -181,7 +201,7 @@ local cmd = oc.command( 'management', 'kick', function( pl, args )
 	oc.notify_fancy( player.GetAll(), '#P kicked #P', pl, args.players );
 end)
 cmd:addParam 'player' { type = 'player' }
-cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
+cmd:addParam 'reason' { type = 'string', 'fill_line' }
 
 ----------------------------------------------------------------
 -- Ban                                                        --
@@ -231,9 +251,6 @@ local cmd = oc.command( 'management', 'unban', function( pl, args )
 end)
 cmd:addParam 'steamid' { type = 'string' }
 cmd:addParam 'reason' { type = 'string', default = 'none', 'fill_line' }
-
-
-
 
 ----------------------------------------------------------------
 -- Reload players                                             --
