@@ -114,10 +114,6 @@ local cmd = oc.command( 'management', 'slay', function( pl, args )
 	local targname = "dissolveme"..tostring({});
 	local drift_dir = Vector(0,0,10); -- make em float up
 	for _, targ in pairs(args.players)do
-		if !targ:Alive() then
-			oc.notify(pl, oc.cfg.color_error, 'Your target is already dead!');
-			return
-		end
 		targ:Kill( );
 		local rag = ragdollPlayer(targ);
 		rag:SetKeyValue("targetname",targname)
