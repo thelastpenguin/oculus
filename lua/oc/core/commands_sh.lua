@@ -166,7 +166,7 @@ function oc.RunChatCommand( pl, text_cmd, text_arg )
 		return ;
 	end
 	
-	local args = oc.parseLine( text_arg );
+	local args = {oc.parseLine( text_arg )};
 	oc.RunCommand( pl, meta, args );
 end
 
