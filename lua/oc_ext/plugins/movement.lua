@@ -1,82 +1,52 @@
-local function playerSend( from, to, force )
-	if not to:IsInWorld() and not force then return false end
-
-	local yawForward = to:EyeAngles().yaw
-	local directions = {
-		math.NormalizeAngle( yawForward - 180 ), 
-		math.NormalizeAngle( yawForward + 90 ),
-		math.NormalizeAngle( yawForward - 90 ),
-		yawForward,
-	}
-
-	local t = {}
-	t.start = to:GetPos() + Vector( 0, 0, 32 )
-	t.filter = { to, from }
-
-	local i = 1
-	t.endpos = to:GetPos() + Angle( 0, directions[ i ], 0 ):Forward() * 47
-	local tr = util.TraceEntity( t, from )
-	while tr.Hit do
-		i = i + 1
-		if i > #directions then
-			if force then
-				from.ulx_prevpos = from:GetPos()
-				from.ulx_prevang = from:EyeAngles()
-				return to:GetPos() + Angle( 0, directions[ 1 ], 0 ):Forward() * 47
-			else
-				return false
-			end
-		end
-
-		t.endpos = to:GetPos() + Angle( 0, directions[ i ], 0 ):Forward() * 47
-
-		tr = util.TraceEntity( t, from )
-	end
-	return tr.HitPos
-end
-
 ----------------------------------------------------------------
 -- Goto                                                      --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'goto', function( pl, args )
-	local succ = playerSend(pl, args.target, pl:GetMoveType() == MOVETYPE_NOCLIP);
-	if not succ then
-		oc.notify(oc.cfg.color_error, 'No where to put you! Go into noclip to bipass this.');
-	else
-		oc.notify_fancy( player.GetAll(), '#P went to #P.', pl, args.target );
-		pl:SetPos(succ);
-	end
+local cmd = oc.command( 'movement', 'goto', function(pl, args)
+	local pos = args.target:GetPos();
+	pos = oc.physics.FindEmptyPos(pos, {pl}, 600, 30, Vector(16, 16, 64))
+	
+	pl:SetPos(pos)
+
+	oc.notify_fancy(player.GetAll(), '#P went to #P.', pl, args.target)
 end)
 cmd:addParam 'target' { type = 'player' }
 
 ----------------------------------------------------------------
--- Bring                                                      --
+-- Tele                                                       --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'bring', function( pl, args )
-	local succ = playerSend(args.target, pl, args.target:GetMoveType() == MOVETYPE_NOCLIP);
-	if not succ then
-		oc.notify(oc.cfg.color_error, 'No where to put them! Noclip target to bipass this.');
-	else
-		oc.notify_fancy( player.GetAll(), '#P brought #P.', pl, args.target );
-		pl:SetPos(succ);
+local cmd = oc.command( 'movement', 'tele', function(pl, args)
+	if !args.target:Alive() then
+		args.target:Spawn()
 	end
+
+	args.target.LastPos = args.target:GetPos()
+
+	local trace = pl.GetEyeTrace(pl)
+	local pos = oc.physics.FindEmptyPos(trace.HitPos, {pl}, 600, 30, Vector(16, 16, 64))
+
+	args.target:SetPos(pos)
+
+	oc.notify_fancy(player.GetAll(), '#P has teleported #P.', pl, args.target)
 end)
 cmd:addParam 'target' { type = 'player' }
 
 ----------------------------------------------------------------
--- Send                                                       --
+-- Return                                                     --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'send', function( pl, args )
-	local succ = playerSend(args.send, args.to, args.send:GetMoveType() == MOVETYPE_NOCLIP);
-	if not succ then
-		oc.notify(oc.cfg.color_error, 'No where to put them! Noclip the player you are sending to bipass this.');
-	else
-		oc.notify_fancy( player.GetAll(), '#P sent #P to #P.', pl, args.send, args.to );
-		args.send:SetPos(succ);
+local cmd = oc.command( 'movement', 'return', function(pl, args)
+	if !args.target.LastPos then
+		oc.notify(pl, oc.cfg.color_error, 'This player has no last know position!')
+		return
 	end
+
+	local pos = oc.physics.FindEmptyPos(args.target.LastPos, {pl}, 600, 30, Vector(16, 16, 64))
+	
+	args.target:SetPos(pos)
+	args.target.LastPos = nil
+	
+	oc.notify_fancy(player.GetAll(), '#P has returned #P.', pl, args.target)
 end)
-cmd:addParam 'send' { type = 'player', help = 'player to send' }
-cmd:addParam 'to' { type = 'player', help = 'target player' }
+cmd:addParam 'target' { type = 'player' }
 
 ----------------------------------------------------------------
 -- Noclip                                                     --
@@ -131,13 +101,11 @@ end);
 ----------------------------------------------------------------
 -- Physgun Player                                             --
 ----------------------------------------------------------------
-
 local physgun_perm = 'plugin.PhysgunPickup.Player';
 oc.perm.register(physgun_perm);
 
 hook.Add('PhysgunPickup', 'oc.PhysgunPickup.PlayerPhysgun', function( pl, ent )
-	local canPhys = oc.p(pl):getPerm(physgun_perm)
-	if ent:IsPlayer() && canPhys then
+	if ent:IsPlayer() && oc.p(pl):getPerm(physgun_perm) && oc.canTarget(pl, ent) then
 		ent:Freeze(true)
 		ent:SetMoveType(MOVETYPE_NOCLIP)
 		return true
