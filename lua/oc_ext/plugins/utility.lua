@@ -1,4 +1,17 @@
 ----------------------------------------------------------------
+-- Adminmode                                                  --
+----------------------------------------------------------------
+local cmd = oc.command( 'utility', false, 'adminmode', function( pl )
+	if not oc.p(pl).AdminMode then
+		oc.p(pl).AdminMode = true
+		oc.notify_fancy(player.GetAll(), '#P is now administrating.', pl)
+	else
+		oc.p(pl).AdminMode = false
+		oc.notify_fancy(player.GetAll(), '#P is no longer administrating.', pl)
+	end
+end)
+
+----------------------------------------------------------------
 -- MoTD                                                       --
 ----------------------------------------------------------------
 local MoTD = { // To do, vars system.
@@ -9,7 +22,7 @@ local MoTD = { // To do, vars system.
 	["Sandbox"] = "www.superiorservers.co/forums/index.php?/topic/9-motd/",
 }
 
-local cmd = oc.command( 'utility', 'motd', function( pl )
+local cmd = oc.command( 'utility', false, 'motd', function( pl )
 	if not MoTD[GAMEMODE.Name] then
 		oc.notify(pl, oc.cfg.color_error, 'There is no MoTD set for this server!')
 		return
@@ -22,6 +35,6 @@ end)
 ----------------------------------------------------------------
 -- Relaod Map                                                 --
 ----------------------------------------------------------------
-local cmd = oc.command( 'utility', 'reload', function( pl )
+local cmd = oc.command( 'utility', true, 'reload', function( pl )
 	RunConsoleCommand( "changelevel", game.GetMap() );
 end)

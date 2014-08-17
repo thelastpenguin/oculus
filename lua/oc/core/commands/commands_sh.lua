@@ -1,6 +1,6 @@
 local oc = oc;
 
-oc.commands = {};
+oc.commands = oc.commands or {};
 
 -- STUBS REMOVE LATER
 function oc.checkPerm( pl, perm )
@@ -10,6 +10,10 @@ end
 function oc.canTarget( pl, targ )
 	if not IsValid(pl) then return true end
 	return oc.p(pl):getImmunity() >= oc.p(targ):getImmunity();
+end
+function oc.canAdmin( pl )
+	if not IsValid(pl) then return false end
+	return oc.p(pl).AdminMode and true or false
 end
 
 
@@ -31,12 +35,13 @@ oc.getParamType = oc.fn_ReadOnly( paramtypes );
 local command_mt = {};
 command_mt.__index = command_mt;
 
-function oc.command( category, command, action )
+function oc.command( category, adminmode, command, action )
 	command = string.lower( command );
 	
 	local c = {};
 	
 	c.category = category;
+	c.adminmode = adminmode;
 	c.action = action;
 	c.command = command;
 	c.perm = 'cmd.'..command;
@@ -239,6 +244,12 @@ end
 	 ====================================================================== */
 
 function oc.RunCommand( pl, meta, args )
+	-- check adminmode first
+	if meta.adminmode && !oc.canAdmin( pl ) then
+		oc.notify( pl, oc.cfg.color_error, 'You need to enter adminmode to use this command!' );
+		return
+	end
+
 	-- process arguments.
 	local params = meta.params;
 	

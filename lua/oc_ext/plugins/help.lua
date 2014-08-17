@@ -1,4 +1,5 @@
-local cmd = oc.command( 'information', 'help', function( pl, args )
+local cmd = oc.command( 'information', false, 'help', function( pl, args )
+	oc.notify_fancy(pl, 'See console for output.')
 end)
 cmd:runOnClient(function()
 	local col = Color(200,200,200);

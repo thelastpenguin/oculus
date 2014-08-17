@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 -- Goto                                                      --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'goto', function(pl, args)
+local cmd = oc.command( 'movement', true, 'goto', function(pl, args)
 	local pos = args.target:GetPos();
 	pos = oc.physics.FindEmptyPos(pos, {pl}, 600, 30, Vector(16, 16, 64))
 	
@@ -14,12 +14,12 @@ cmd:addParam 'target' { type = 'player' }
 ----------------------------------------------------------------
 -- Tele                                                       --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'tele', function(pl, args)
+local cmd = oc.command( 'movement', true, 'tele', function(pl, args)
 	if !args.target:Alive() then
 		args.target:Spawn()
 	end
 
-	args.target.LastPos = args.target:GetPos()
+	oc.p(args.target).LastPos = args.target:GetPos()
 
 	local trace = pl.GetEyeTrace(pl)
 	local pos = oc.physics.FindEmptyPos(trace.HitPos, {pl}, 600, 30, Vector(16, 16, 64))
@@ -33,16 +33,16 @@ cmd:addParam 'target' { type = 'player' }
 ----------------------------------------------------------------
 -- Return                                                     --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', 'return', function(pl, args)
-	if !args.target.LastPos then
+local cmd = oc.command( 'movement', true, 'return', function(pl, args)
+	if !oc.p(args.target).LastPos then
 		oc.notify(pl, oc.cfg.color_error, 'This player has no last know position!')
 		return
 	end
 
-	local pos = oc.physics.FindEmptyPos(args.target.LastPos, {pl}, 600, 30, Vector(16, 16, 64))
+	local pos = oc.physics.FindEmptyPos(oc.p(args.target).LastPos, {pl}, 600, 30, Vector(16, 16, 64))
 	
 	args.target:SetPos(pos)
-	args.target.LastPos = nil
+	oc.p(args.target).LastPos = nil
 	
 	oc.notify_fancy(player.GetAll(), '#P has returned #P.', pl, args.target)
 end)
@@ -64,7 +64,7 @@ local function toggleFlying(pl)
 	end
 end
 
-local cmd = oc.command( 'movement', 'noclip', function( pl, args, meta )
+local cmd = oc.command( 'movement', true, 'noclip', function( pl, args, meta )
 	if args.target ~= pl then
 		if meta:playerGetExtraPerm('others') then
 			if not toggleFlying(args.target) then
@@ -89,11 +89,14 @@ cmd:addExtraPerm 'others';
 cmd:addParam 'target' { type = 'player', help = 'player to noclip', default = function(pl) return pl end }
 
 hook.Add('PlayerNoClip', 'oc.permCheck.PlayerNoClip', function(pl)
-	local canNoclip = oc.p(pl):getPerm(cmd_noclip.perm);
-	if canNoclip then
+	if oc.p(pl):getPerm(cmd_noclip.perm) && oc.canAdmin(pl) then
 		return true
 	else
-		if SERVER then oc.notify(pl, oc.cfg.color_error, 'You need permission \'move.noclip\' to noclip!') end
+		if SERVER && !oc.p(pl):getPerm(cmd_noclip.perm) then 
+			oc.notify(pl, oc.cfg.color_error, 'You need permission \'move.noclip\' to noclip!') 
+		elseif SERVER && !oc.canAdmin(pl) then
+			oc.notify(pl, oc.cfg.color_error, 'Please enter adminmode to noclip.') 
+		end
 		return false
 	end
 end);
@@ -105,7 +108,7 @@ local physgun_perm = 'plugin.PhysgunPickup.Player';
 oc.perm.register(physgun_perm);
 
 hook.Add('PhysgunPickup', 'oc.PhysgunPickup.PlayerPhysgun', function( pl, ent )
-	if ent:IsPlayer() && oc.p(pl):getPerm(physgun_perm) && oc.canTarget(pl, ent) then
+	if ent:IsPlayer() && oc.p(pl):getPerm(physgun_perm) && oc.canTarget(pl, ent) && oc.canAdmin(pl) then // and and and
 		ent:Freeze(true)
 		ent:SetMoveType(MOVETYPE_NOCLIP)
 		return true
