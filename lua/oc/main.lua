@@ -79,13 +79,13 @@ oc.include_sv 'util/sourcebans_sv.lua' 'UTIL: sourcebans';
 oc.include_sv 'util/ban_sv.lua' 'UTIL: ban_sv';
 
 print();oc.LoadMsg( '\nCORE\n' );
-oc.include_sv 'core/group_sv.lua' 'CORE: group sv';
-oc.include_cl 'core/group_cl.lua' 'CORE: group cl';
-oc.include_sv 'core/player_sv.lua' 'CORE: player sv';
-oc.include_cl 'core/player_cl.lua' 'CORE: player cl';
-oc.include_sh 'core/commands_sh.lua' 'CORE: commands';
-oc.include_sh 'core/autocomplete_sh.lua' 'CORE: autocomplete';
-oc.include_sh 'core/player_meta_sh.lua' 'CORE: player meta sh';
+oc.include_sv 'core/group/group_sv.lua' 'CORE: group sv';
+oc.include_cl 'core/group/group_cl.lua' 'CORE: group cl';
+oc.include_sv 'core/player/player_sv.lua' 'CORE: player sv';
+oc.include_cl 'core/player/player_cl.lua' 'CORE: player cl';
+oc.include_sh 'core/commands/commands_sh.lua' 'CORE: commands';
+oc.include_sh 'core/commands/autocomplete_sh.lua' 'CORE: autocomplete';
+oc.include_sh 'core/player/player_meta_sh.lua' 'CORE: player meta sh';
 oc.include_sh 'core/plugins_sh.lua' '\nCORE: plugins\n';
 
 

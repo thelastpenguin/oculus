@@ -44,15 +44,12 @@ end
 
 
 function readArray( str, start )
-	local finish = findArrayClose( str, start );
-	if finish then
-		local arrayBody = str:sub(start, finish-1);
-		//print('ARRAY BODY: ', arrayBody);
-		local array = {oc.parseLine(arrayBody)};
-		return array, readNext(str, finish+1);
-	else
-		error('array not terminated. Error');
-	end
+	local finish = findArrayClose( str, start ) or str:len();
+
+	local arrayBody = str:sub(start, finish-1);
+	//print('ARRAY BODY: ', arrayBody);
+	local array = {oc.parseLine(arrayBody)};
+	return array, readNext(str, finish+1);
 end
 
 function readQuoted( str, start, endChar )

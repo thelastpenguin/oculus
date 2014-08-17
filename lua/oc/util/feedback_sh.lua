@@ -1,6 +1,8 @@
 local net , type = _G.net, _G.type ;
 local oc = _G.oc;
 
+oc.fancy_formats = {};
+
 function oc.consoleAddText(...)
 	local arg = {...};
 	local col = color_white;
@@ -18,6 +20,7 @@ function oc.consoleAddText(...)
 end
 
 if SERVER then
+	local fancy_formats = oc.fancy_formats;
 	
 	local function shouldConsoleSee( tbl )
 		local t = type(tbl);
@@ -69,10 +72,7 @@ if SERVER then
 	
 	oc.notify_all = function(...) oc.notify( player.GetAll(), ... ) end
 
-	
-	local fancy_formats = {};
-	oc.fancy_formats = fancy_formats;
-	
+
 	function oc.notify_fancy( pl, format, ... )
 		local param = {...};
 		local paramc = 0;
@@ -82,8 +82,17 @@ if SERVER then
 		end
 		
 		local message = {};
+
+		-- helpers
+		local function output_format(formatter, arg)
+			local res = {formatter(arg)};
+			for i = 1, #res do
+				message[#message+1] = res[i];
+			end
+		end
 		
-		local output_special, output_normal ;
+		-- output modes
+		local output_special, output_normal, output_array ;
 		function output_normal( ind )
 			local stop = string.find( format, '#', ind );
 			message[#message+1] = color_white;
@@ -95,11 +104,48 @@ if SERVER then
 			end
 		end
 		
+		function output_array( ind )
+			local arg = next_param();
+
+			local code = string.sub( format, ind, ind );
+			if not code then return end
+			
+			local formatter = fancy_formats[code];
+			if not formatter then
+				message[#message+1] = oc.cfg.color_error;
+				message[#message+1] = 'ERROR UNEXPECTED \''..code..'\'';
+				return;
+			end
+			
+			local len = #arg;
+			if len == 1 then
+				output_format(formatter, arg);
+			else
+				for i = 1, len-1 do
+					print(arg[i]);
+					output_format(formatter, arg[i]);
+					message[#message+1] = color_white;
+					message[#message+1] = ', ';
+				end
+				message[#message+1] = color_white;
+				message[#message+1] = 'and ';
+				output_format(formatter, arg[len]);
+			end
+			
+			output_normal(ind+1);
+		end
+		
 		function output_special( ind )
 			local code = string.sub( format, ind, ind );
-			local arg = next_param();
 			
 			if not code then return end
+			if code == '#' then 
+				output_array( ind+1 )
+				return ;
+			end
+			
+			local arg = next_param();
+			
 			local formatter = fancy_formats[code];
 			if formatter then
 				local res = {formatter(arg)};
