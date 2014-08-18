@@ -6,11 +6,16 @@ oc.perm.register('meta.isAdmin');
 
 oc.hook.Add('PostGamemodeLoaded', function()
 	function Player:IsSuperAdmin()
-		local ocp = ocp(self);
-		return (ocp:getPerm('meta.isSuperAdmin') or ocp:getPerm('meta.isAdmin')) and true or false;
+		if not oc.canAdmin(self) then
+			return false
+		end
+		return ocp(self):getPerm('meta.isSuperAdmin') and true or false;
 	end
 
 	function Player:IsAdmin()
+		if not oc.canAdmin(self) then
+			return false
+		end
 		return ocp(self):getPerm('meta.isAdmin') and true or false;	
 	end
 	
