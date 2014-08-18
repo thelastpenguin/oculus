@@ -31,6 +31,18 @@ function paramtype_mt:process(arg, opts, compiler)
 	return true, arg;
 end
 
+function paramtype_mt:getAutoComplete(opts, pl)
+	if opts.options then
+		if isfunction(opts.options)then
+			return opts.options(pl);
+		else
+			return opts.options;
+		end
+	elseif self.autocompleter then
+		return self.autocompleter(opts, pl);
+	end
+end
+
 function paramtype_mt:addStep(func)
 	dprint(' added new step to '..self.type);
 	table.insert(self.steps, func);
@@ -38,6 +50,22 @@ end
 
 function paramtype_mt:addFancyFormat(tag, func)
 	oc.fancy_formats[tag] = func;
+end
+
+function paramtype_mt:setAutoComplete(func)
+	self.autocompleter = func;
+end
+
+--
+-- AUTOCOMPLETE THE GIVEN ARG
+--
+function oc.parser.autocomplete(opts, arg, pl)
+	local typeMeta = param_types[opts.type];
+	if not typeMeta then
+		return {'<invalid type '..opts.type..'>'};
+	else
+		return typeMeta:getAutoComplete(opts, pl);
+	end
 end
 
 
@@ -64,21 +92,29 @@ function compiler_mt:process(params, args, pl)
 		dprint(ind..') param: '..param.type);
 		
 		local arg = self:popArg();
+		
+		-- it's not there!!! the world is ending!!!
 		if not arg then
-			self:throwError(string.format('Arg expected for param %d (%s) got nil.', ind, param.pid ));
-			return ;
+			if param.default then
+				arg = param.default;
+			elseif param.optional then
+				continue ;
+			else
+				self:throwError(string.format('Arg expected for param %d (%s) got nil.', ind, param.pid ));
+				return ;
+			end
 		end
 		
 		local meta = param_types[param.type];
 		if not meta then
-			error('command type '..arg.type..' does not exist');
+			error('command type '..param.type..' does not exist');
 		end
 		
 		local succ, res = meta:process( arg, param, self );
 		if succ then
 			self.result[param.pid] = res;
 		else
-			self:throwError(res);
+			self:throwError(res or 'no error');
 		end
 	end
 	
@@ -107,39 +143,16 @@ end
 
 
 
-oc.parser.compile( {
-	 {pid = 'helloWorld', type = 'string'},
-	 {pid = 'test', type = 'string'},
-	 {pid = 'test1', type = 'string'},
-	 {pid = 'test2', type = 'string'},
-	 {pid = 'player', type = 'player'},
-	 {pid = 'player', type = 'player'}
-}, {oc.parseLine([["this is a first value" thisOneDoesntHaveQuotes 'this has little quotes' 'and this has a \' thingy in it' [and an array penguin] ]])}, player.GetAll()[1]);
-
-
-local thingy = oc.parser.compile({
-	{pid='helloWorld', type = 'string', fill_line = true}
-}, {oc.parseLine([[oh snap this is a thingy like really isnt it]])}, player.GetAll()[1]);
-
-local thingy = oc.parser.compile({
-	{pid='helloWorld', type = 'number'}
-}, {oc.parseLine([[1000aa0]])}, player.GetAll()[1]);
-
-local thingy = oc.parser.compile({
-	{pid='helloWorld', type = 'number'}
-}, {oc.parseLine([[1000aa0]])}, player.GetAll()[1]);
-
-PrintTable(thingy.result);
-
-
-
-
 
 
 --
 -- REGISTER ARGUMENT TYPES
 --
 
+
+local function stringIsSteamID(str)
+	return str:match('STEAM_[%d]:[%d]:[%d]+') == str;
+end
 
 --
 -- TYPE STRING
@@ -186,8 +199,14 @@ type_player:addStep(function(arg, opts, compiler)
 			end	
 		end);
 	else
+		if stringIsSteamID(arg) then
+			for k,v in pairs(player.GetAll())do
+				if v:SteamID() == arg then
+					return true, {v};
+				end
+			end
+		end
 		arg = arg:lower();
-		
 		return true, xfn.filter(player.GetAll(), function(pl)
 			return pl:Name():lower():find(arg, 1, false);	
 		end);
@@ -240,15 +259,22 @@ type_player:addFancyFormat('P', function(arg)
 		if not IsValid(arg) then
 			return Color(0,0,0), '(Console)';
 		else
-			return team.GetColor(pl:Team()), pl:Name();
+			return team.GetColor(arg:Team()), arg:Name();
 		end
 	end
 end);
 
+type_player:setAutoComplete(function(param, pl)
+	return xfn.map(player.GetAll(), function(pl)
+		return pl:Name()
+	end);
+end);
+
+
+
 --
 -- ARGUMENT TYPE - NUMBER
 -- 
-
 local type_number = oc.parser.newParamType('number');
 type_number:addStep(function(arg, opts, compiler)
 	local num = tonumber(arg);
@@ -283,8 +309,8 @@ type_time:addStep(function(arg, opts, compiler)
 	
 	local s = 0;
 	for v, t in string.gmatch( arg, '(%d+)(%a+)' ) do
-		if mults[t] then
-			s = s + v * mults[t]
+		if time_mults[t] then
+			s = s + v * time_mults[t]
 		else
 			return false, 'Invalid time code \''..t..'\'';
 		end
@@ -304,73 +330,110 @@ type_time:addFancyFormat('T', function(arg)
 		leftOver = arg % mult;
 		if leftOver > 0 then
 			output[#output+1] = leftOver .. v
-			output = output - leftOver;
+			leftOver = leftOver - leftOver;
 		end
 	end
 	return oc.cfg.color_time, table.concat(output, ' ');
+end);
+type_time:setAutoComplete(function()
+	return {'<w:week d:day h:hour m:minute>'};
 end);
 
 --
 -- STEAMID ARGUMENT TYPE
 --
-local type_steamid = oc.parser.newParamType('steamid')
-local function stringIsSteamID(str)
-	return str:match('STEAM_[%d]:[%d]:[%d]+') == str;
-end
-local function findPlayer(name)
-	local res;
-	for k,v in pairs(player.GetAll())do
-		if v:Name():lower():find(name) then
-			if res then
-				return nil;
-			else
-				res = v;
+do
+	local type_steamid = oc.parser.newParamType('steamid')
+	local function findPlayer(name)
+		local res;
+		for k,v in pairs(player.GetAll())do
+			if v:Name():lower():find(name) then
+				if res then
+					return nil;
+				else
+					res = v;
+				end
 			end
 		end
+		return res;
 	end
-	return res;
-end
-type_steamid:addStep(function(arg, opts, compiler)
-	if istable(arg) then
-		if not opts.multi then
-			return false, 'cmd does not have opts.multi flag, can not multi target';
-		end
-		
-		local res = {};
-		for _,arg in pairs(arg)do
+
+	type_steamid:addStep(function(arg, opts, compiler)
+		if istable(arg) then
+			if not opts.multi then
+				return false, 'cmd does not have opts.multi flag, can not multi target';
+			end
+			
+			local res = {};
+			for _,arg in pairs(arg)do
+				if stringIsSteamID(arg) then
+					table.insert(res, arg);
+				else
+					local pl = findPlayer(arg:lower());
+					if pl then 
+						table.insert(res, pl:SteamID())
+					else
+						return false, 'Failed to match '..arg..' to a single player (if any)';
+					end
+				end
+			end
+			if #res == 0 then
+				return false, 'Failed to identify any steamid(s)';
+			end
+			return true, xfn.unique(res);
+		else
 			if stringIsSteamID(arg) then
-				table.insert(res, arg);
+				return arg;
 			else
 				local pl = findPlayer(arg:lower());
-				if pl then 
-					table.insert(res, pl:SteamID())
+				if pl then
+					return true, pl:SteamID();
 				else
 					return false, 'Failed to match '..arg..' to a single player (if any)';
 				end
 			end
 		end
-		if #res == 0 then
-			return false, 'Failed to identify any steamid(s)';
-		end
-		return true, res;
-	else
-		if stringIsSteamID(arg) then
-			return arg;
+	end);
+
+	type_steamid:addStep(function(arg, opts, compiler)
+		if opts.multi then
+			return true, istable(arg) and arg or {arg};
 		else
-			local pl = findPlayer(arg:lower());
-			if pl then
-				return true, pl:SteamID();
-			else
-				return false, 'Failed to match '..arg..' to a single player (if any)';
-			end
+			return true, arg;
 		end
+	end);
+
+	local mt_SteamID = FindMetaTable('Player').SteamID;
+	type_steamid:setAutoComplete(function(opts)
+		return xfn.map(player.GetAll(), mt_SteamID);
+	end);
+end
+
+
+local type_group = oc.parser.newParamType('group');
+
+type_group:addStep(function(arg)
+	local id = tonumber(arg);
+	if id and oc.g(id) then
+		return true, oc.g(id);
+	else
+		for k,v in pairs(oc.groups)do
+			if v.name == arg then return true, v end
+		end
+		return false, 'group '..arg..' doesnt exist';
 	end
 end);
 
-type_steamid:addStep(function(arg, opts, compiler)
-	if opts.multi then
-		return true, istable(arg) and arg or {arg};
-	else
-		return true, arg;
+type_group:setAutoComplete(function(opts)
+	local res = {};
+	for k,v in pairs(oc.groups)do
+		res[#res+1] = v.name;
 	end
+	return res
 end);
+
+type_group:addFancyFormat('G', function(arg)
+	return arg.color, arg.name;
+end);
+
+

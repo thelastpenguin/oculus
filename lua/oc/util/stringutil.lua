@@ -1,8 +1,8 @@
 local readNext, readSimple, readQuoted, readArray;
 
-function readNext( str, start )
+function readNext( str, _start )
 	//dprint('reading next from: '..start);
- 	local start = string.find(str, '[^%s]', start);
+ 	local start = string.find(str, '[^%s]', _start);
 	
 	if start then
 		//dprint('found next at: '..start);
@@ -17,7 +17,7 @@ function readNext( str, start )
 			return readSimple(str, start);
 		end
 	else
-		//dprint('no next found. terminating parse');
+		return _start-1 ~= str:len() and '' or nil;
 	end
 end
 

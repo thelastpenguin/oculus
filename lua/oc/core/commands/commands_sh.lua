@@ -12,19 +12,6 @@ function oc.canTarget( pl, targ )
 	return oc.p(pl):getImmunity() >= oc.p(targ):getImmunity();
 end
 
-
-
-/* ======================================================================
-	 	META OBJECT FOR EACH PARAMETER TYPE
-	 ====================================================================== */
-
-local paramtypes = {};
-function oc.addParamType( typeid, table )
-	paramtypes[ typeid ] = table;
-end
-oc.getParamType = oc.fn_ReadOnly( paramtypes );
-
-
 /* ======================================================================
 	 	META OBJECT FOR EACH COMMAND
 	 ====================================================================== */
@@ -159,7 +146,7 @@ end);
 
 function oc.RunChatCommand( pl, text_cmd, text_arg )
 	local meta = oc.commands[ text_cmd ];
-	local perm = meta:getPerm( );
+	local perm = meta:getPerm();
 	
 	if not oc.checkPerm( pl, perm ) then
 		oc.notify( pl, oc.cfg.color_error, 'You do not have permission \''..perm..'\'.' );
@@ -209,12 +196,9 @@ concommand.Add('oc', function(pl, _, args)
 end, function(_, text_arg)
 
 	local pl = CLIENT and LocalPlayer() or Entity(1)
-
-	if not pl then 
-		Error('no player could be found');
-	end
-
-	return oc.AutocompleteCommand( pl, text_arg )
+	
+	
+	return oc.autocomplete.general(text_arg, pl)
 end);
 
 if SERVER then
@@ -237,59 +221,6 @@ end
 /* ======================================================================
 	 	COMMAND EXECUTION
 	 ====================================================================== */
-
-function oc.RunCommand( pl, meta, args )
-	-- process arguments.
-	local params = meta.params;
-	
-	local succ = oc.hook.Call( 'ProcessCMDArgs', pl, params, args );
-	if succ == false then return end
-	
-	-- make some arguments optional
-	for i = #args+1, #params do
-		if not params[i].optional then
-			oc.notify(pl, oc.cfg.color_error, 'PARSE ERROR: too few arguements. Got ' .. #args .. ' expected ' .. #params );
-			return ;
-		end
-	end
-	
-	local processed = {};
-	for i = 1, #args do
-		local arg = args[i];
-		if not arg then return end -- this should never happen but somehow it does on occasion
-		
-		local param = params[i];
-		local pmeta = oc.getParamType( param.type );
-		if not pmeta then
-			oc.notify( pl, oc.cfg.color_error,'CONTACT A CODER! PARAM TYPE: '..param.type..' does not exist! This should never happen.' );
-			return ;
-		end
-		
-		local succ, narg = pmeta.parse( arg, param, pl );
-		
-		if not succ then
-			oc.notify( pl, oc.cfg.color_error, 'PARSE ERROR: Failed to parse arg ('..i..') '..param.pid..'. ', arg );
-			return ;
-		end
-		
-		processed[ param.pid ] = narg;
-	end
-	
-	local succ, err = pcall(meta.action, pl, processed, meta);
-	if not succ then
-		oc.notify( pl, oc.cfg.color_error, 'ERROR ON COMMAND: ', err );
-		return ;
-	end
-	
-	if meta.funcRunOnClient then
-		net.Start('oc.cmd.runOnClient')
-			net.WriteString(meta:getCommand());
-			net.WriteString(pon.encode(processed));
-		net.Send(pl);
-	end
-end
-
--- handle commands with client side components
 if SERVER then
 	util.AddNetworkString('oc.cmd.runOnClient');
 else
@@ -302,211 +233,30 @@ else
 	end);
 end
 
--- strip arguements that have zero length
-oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
-	xfn.filter(args, function(arg)
-		return arg:len() > 0;
-	end);
-end);
-
--- auto fill in default values
-oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
-	for k,v in pairs( params )do
-		if v.default and not args[k] then args[k] = isfunction(v.default) and v.default(pl, v, args[k]) or v.default end
-	end
-end);
-
-oc.hook.Add( 'ProcessCMDArgs', function( pl, params, args )
+function oc.RunCommand( pl, meta, args )
+	-- process arguments.
+	local params = meta.params;
 	
-	-- fill to the end of the line so quotes aren't needed for ban reasons etc.
-	if #args > #params then
-		if #params ~= 0 then
-			if params[#params].fill_line then
-				local lastArg = #params;
-				for i = lastArg + 1, #args do
-					args[lastArg] = args[lastArg]..' '..args[i];
-					args[i] = nil;
-				end
-			else
-				oc.notify( pl, Color(255,155,0), 'ERROR: too many arguements. Expected '..#params..' got '..#args..' params.' );
-				return false;
-			end
-		end
+	local succ = oc.hook.Call( 'ProcessCMDArgs', pl, params, args );
+	if succ == false then return end
+	
+	local compiler = oc.parser.compile(params, args, pl);
+	
+	if compiler.error then
+		oc.notify( pl, oc.cfg.color_error, 'FAILED TO RUN COMMAND: FATAL ERROR');
+		return ;
 	end
 	
-end);
-
-
-/* ======================================================================
-	 	PARAMETER TYPES FOR COMMANDS
-	 ====================================================================== */
-
-
--- STRING
-local TYPE = {};
-TYPE.parse = function( arg ) return arg:len() ~= 0, arg end
-oc.addParamType( 'string', TYPE );
-
-oc.fancy_formats['S'] = function( arg ) 
-	return oc.cfg.color_string, tostring( arg );
-end
-
--- NUMBER
-local TYPE = {};
-TYPE.parse = function( str, param )
-	local n = tonumber( str )
-	if not n then return false end
-	return true, n ;
-end
-oc.addParamType( 'number', TYPE );
-oc.fancy_formats['N'] = function( arg )
-	return oc.cfg.color_number, tonumber( arg );
-end
-
--- TIME
-local mults = {}
-mults['m'] = 60;
-mults['h'] = 60*mults['m'];
-mults['d'] = 24*mults['h'];
-mults['w'] = 7 *mults['d'];
-local divs = {'w','d','h','m'}
-local TYPE = {};
-TYPE.parse = function( arg, param )
-	if tonumber(arg) then
-		return true, tonumber(arg);
-	end
-	if param.forever and arg == 'forever' then
-		return true, 0;
+	local succ, err = pcall(meta.action, pl, compiler.result, meta);
+	if not succ then
+		oc.notify( pl, oc.cfg.color_error, 'INTURNAL ERROR: ', err );
+		return ;
 	end
 	
-	local s = 0;
-	for v, t in string.gmatch( arg, '(%d+)(%a+)' ) do
-		if mults[t] then s = s + v * mults[t] end
+	if meta.funcRunOnClient then
+		net.Start('oc.cmd.runOnClient')
+			net.WriteString(meta:getCommand());
+			net.WriteString(pon.encode(compiler.result));
+		net.Send(pl);
 	end
-	return true, s;
-end
-oc.addParamType( 'time', TYPE );
-oc.fancy_formats['T'] = function( number )
-	if number == 0 then
-		return oc.cfg.color_time, 'forever';
-	end
-	
-	local time = ''
-	for _, div in ipairs( divs )do
-		local val = math.floor( number / mults[div] );
-		if val > 0 then
-			time = time .. val .. div;
-		end
-		number = number % mults[div];
-	end
-	return oc.cfg.color_time, time ;
-end
-
-
-local TYPE = {};
-local function findPlayersByName( arg )
-	if arg == '*' then
-		return player.GetAll();
-	else
-		local targ = {};
-		local searchfor = string.lower( arg );
-		local n;
-		
-		for k, v in pairs( player.GetAll() )do
-			n = string.lower( v:Name() );
-			if n == searchfor or v:SteamID() == searchfor then
-				return {v};
-			elseif n:find( searchfor ) then
-				targ[#targ+1] = v;
-			end
-		end
-		
-		return targ;
-	end
-end
-
-TYPE.parse = function( arg, param, pl )
-	local targets = xfn.filter(findPlayersByName( arg ), 
-		function(other)
-			return oc.canTarget(pl, other)
-		end);
-	
-	if #targets == 0 then 
-		return false, 'No targets found';
-	end
-	
-	if param.multi then
-		return true, targets;
-	elseif #targets ~= 1 then
-		return false, 'Too many targets';
-	else
-		return true, targets[1];
-	end
-end
-
-oc.addParamType( 'player', TYPE );
-oc.fancy_formats['P'] = function( players )
-	-- special case for console
-	if type(players) == 'Entity' and not IsValid(players) then
-		return Color(0,0,0), '(Console)';
-	end
-	
-	if type( players ) ~= 'table' then
-		players = { players };
-	end
-	
-	local addName, addSep ;
-
-	local playerCount = #players;
-	function addSep( index )
-		if index == playerCount then
-			return
-		elseif index == playerCount - 1 then
-			return color_white, ' and ', addName( index + 1 );
-		else
-			return color_white, ', ', addName( index + 1 );
-		end
-	end
-	function addName( index )
-		local ply = players[index];
-		if type( ply ) == 'Player' then
-			return team.GetColor( ply:Team() ) or color_white, ply:Name(), addSep( index ) ;
-		elseif ply then
-			return addName( index + 1 );
-		end
-	end
-	
-	return addName( 1 );
-end
-
-TYPE.autocomplete = function(param)
-	return xfn.map(player.GetAll(), function(pl) return pl:Name() end);
-end
-
-
-
--- GROUP
-local TYPE = {};
-TYPE.parse = function( str, param )
-	local id = tonumber(str);
-	if id and oc.g(id) then
-		return true, oc.g(id);
-	else
-		for k,v in pairs(oc.groups)do
-			if v.name == str then return true, v end
-		end
-		return false
-	end
-end
-TYPE.autocomplete = function(param)
-	local res = {};
-	for k,v in pairs(oc.groups)do
-		res[#res+1] = v.name;
-	end
-	return res
-end
-
-oc.addParamType( 'group', TYPE );
-oc.fancy_formats['G'] = function( arg )
-	return arg.color, arg.name;
 end
