@@ -56,12 +56,13 @@ function oc.autocomplete.args( cmd_text, args, pl )
 		if istable(carg) then
 			prefix = prefix .. table.concat(xfn.map(carg, quotify))..' ';
 		else
-			prefix = prefix .. quotify(carg)..' ';
+			prefix = prefix .. quotify(carg);
 		end
 	end
 	
+	local postFix = #args < #params and ' ' or '';
 	return xfn.map(opts, function(opt)
-		return prefix..quotify(opt);
+		return prefix..quotify(opt)..postFix;
 	end);
 end
 
