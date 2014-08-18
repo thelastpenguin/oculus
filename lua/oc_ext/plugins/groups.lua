@@ -1,5 +1,5 @@
 -- group add perm
-local cmd = oc.command( 'permissions', true, 'groupaddlocalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'groupaddlocalperm', function( pl, args )
 	args.group:addPerm(args.perm, false);
 	oc.notify_fancy( player.GetAll(), '#P granted local permission #S to #G', pl, args.perm, args.group );
 end)
@@ -9,7 +9,7 @@ cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.au
 
 
 -- group del perm
-local cmd = oc.command( 'permissions', true, 'groupdellocalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'groupdellocalperm', function( pl, args )
 	args.group:delPerm(args.perm, false);
 	oc.notify_fancy( player.GetAll(), '#P deleted local permission #S from #G', pl, args.perm, args.group );
 end)
@@ -19,7 +19,7 @@ cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.au
 
 
 -- group add perm
-local cmd = oc.command( 'permissions', true, 'groupaddglobalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'groupaddglobalperm', function( pl, args )
 	args.group:addPerm(args.perm, true);
 	oc.notify_fancy( player.GetAll(), '#P granted global permission #S to #G', pl, args.perm, args.group );
 end)
@@ -29,7 +29,7 @@ cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.au
 
 
 -- group del perm
-local cmd = oc.command( 'permissions', true, 'groupdelglobalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'groupdelglobalperm', function( pl, args )
 	args.group:delPerm(args.perm, true);
 	oc.notify_fancy( player.GetAll(), '#P deleted global permission #S from #G', pl, args.perm, args.group );
 end)
@@ -38,7 +38,7 @@ cmd:addParam 'group' { type = 'group', help = 'target group' }
 cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 
-local cmd = oc.command( 'permissions', true, 'groupinfo', function( pl, args )
+local cmd = oc.command( 'permissions', 'groupinfo', function( pl, args )
 	net.Start('oc.cmd.groupinfo.run');
 		net.WriteUInt( args.group.gid, 32 );	
 	net.Send(pl);

@@ -1,8 +1,8 @@
-local readNext, readSimple, readQuoted, readArray;
+local readNext, readSimple, readQuoted, readArray ;
 
 function readNext( str, _start )
 	//dprint('reading next from: '..start);
- 	local start = string.find(str, '[^%s]', _start);
+ 	local start = str:find('[^%s]', _start);
 	
 	if start then
 		//dprint('found next at: '..start);

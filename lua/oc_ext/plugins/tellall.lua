@@ -47,7 +47,7 @@ elseif (CLIENT) then
 	end)
 end
 
-local cmd = oc.command('utility', true, 'tellall', function(pl, args)
+local cmd = oc.command('utility', 'tellall', function(pl, args)
 	if (SERVER) then
 		net.Start("oc.TellAll")
 			net.WriteString(args.msg)

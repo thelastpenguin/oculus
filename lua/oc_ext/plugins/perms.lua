@@ -1,6 +1,6 @@
 
 -- player add perm
-local cmd = oc.command( 'permissions', true, 'playeraddlocalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'playeraddlocalperm', function( pl, args )
 	oc.p(args.player):addPerm(args.perm, false);
 	oc.notify_fancy( player.GetAll(), '#P granted #P local permission #S.', pl, args.player, args.perm );
 end)
@@ -9,7 +9,7 @@ cmd:addParam 'player' { type = 'player', help = 'target player' }
 cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 -- player add perm
-local cmd = oc.command( 'permissions', true, 'playeraddglobalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'playeraddglobalperm', function( pl, args )
 	oc.p(args.player):addPerm(args.perm, true);
 	oc.notify_fancy( player.GetAll(), '#P granted #P global permission #S.', pl, args.player, args.perm );
 end)
@@ -20,7 +20,7 @@ cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.au
 
 
 -- player del perm
-local cmd = oc.command( 'permissions', true, 'playerdellocalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'playerdellocalperm', function( pl, args )
 	oc.p(args.player):delPerm(args.perm, false);
 	oc.notify_fancy( player.GetAll(), '#P removed local permission #S from #P.', pl, args.perm, args.player );
 end)
@@ -29,7 +29,7 @@ cmd:addParam 'player' { type = 'player', help = 'target player'}
 cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', options = oc.autocomplete.perms}
 
 -- player del perm
-local cmd = oc.command( 'permissions', true, 'playerdelglobalperm', function( pl, args )
+local cmd = oc.command( 'permissions', 'playerdelglobalperm', function( pl, args )
 	oc.p(args.player):delPerm(args.perm, true);
 	oc.notify_fancy( player.GetAll(), '#P removed global permission #S from #P.', pl, args.perm, args.player );
 end)
@@ -40,7 +40,7 @@ cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', op
 
 
 -- player set primary group
-local cmd = oc.command( 'permissions', true, 'playersetlocalgroup', function( pl, args )
+local cmd = oc.command( 'permissions', 'playersetlocalgroup', function( pl, args )
 	if (args.time or args.fallback) and not (args.time and args.fallback) then
 		oc.notify(pl, oc.cfg.color_error, 'Error! You must provide both time and fallback if you choose to use this feature');
 		return ;
@@ -63,14 +63,14 @@ cmd:addParam 'time' { type = 'time', 'optional' }
 cmd:addParam 'fallback' { type = 'group', 'optional' }
 
 -- player set primary group
-local cmd = oc.command( 'permissions', true, 'playersetglobalgroup', function( pl, args )
+local cmd = oc.command( 'permissions', 'playersetglobalgroup', function( pl, args )
 	if (args.time or args.fallback) and not (args.time and args.fallback) then
 		oc.notify(pl, oc.cfg.color_error, 'Error! You must provide both time and fallback if you choose to use this feature');
 		return ;
 	end
 	if args.time then
 		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G for #T with fallback group #G', pl, args.player, args.group, args.time, args.fallback );
-		oc.p(args.player):setGroup(args.group.gid, true, function()
+		oc.p(args.player):setGroup(args.group.gid, function()
 			oc.p(args.player):addTempPerm(string.format('group.primary.%x', args.group.gid), string.format('group.primary.%x', args.fallback.gid), os.time() + args.time, true );
 		end);
 	else
@@ -87,7 +87,7 @@ cmd:addParam 'fallback' { type = 'group', 'optional' }
 
 
 -- player get info
-local cmd = oc.command( 'permissions', true, 'playerinfo', function( pl, args )
+local cmd = oc.command( 'permissions', 'playerinfo', function( pl, args )
 end)
 cmd:runOnClient(function(args)
 	local pl = args.player;

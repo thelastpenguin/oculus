@@ -1,3 +1,8 @@
+local oc = oc;
+local string , table , pairs , ipairs = string , table , pairs , ipairs ;
+local isfunction , istable , type = isfunction , istable , type ;
+
+
 oc.parser = {};
 
 local compiler_mt = {};
@@ -36,7 +41,7 @@ function paramtype_mt:getAutoComplete(opts, pl)
 		if isfunction(opts.options)then
 			return opts.options(pl);
 		else
-			return opts.options;
+			return table.Copy(opts.options);
 		end
 	elseif self.autocompleter then
 		return self.autocompleter(opts, pl);
@@ -73,7 +78,7 @@ end
 -- PARSE THE GIVEN STRING
 --
 function oc.parser.compile(params, args, pl)
-	dprint('compiler running with params: '..#params..' and args: '..#args);
+	//dprint('compiler running with params: '..#params..' and args: '..#args);
 	local compiler = setmetatable({}, compiler_mt);
 	compiler:process(params, args, pl);
 	
@@ -87,9 +92,9 @@ function compiler_mt:process(params, args, pl)
 	
 	self.result = {};
 	
-	dprint('processing params');
+	//dprint('processing params');
 	for ind, param in ipairs(params)do
-		dprint(ind..') param: '..param.type);
+		//dprint(ind..') param: '..param.type);
 		
 		local arg = self:popArg();
 		
@@ -193,7 +198,7 @@ type_player:addStep(function(arg, opts, compiler)
 		return true, xfn.filter(player.GetAll(), function(pl)
 			local plName = pl:Name():lower();
 			for k,v in pairs(arg)do
-				if pl:Name():find(v, 1, false) then
+				if pl:Name():find(v, 1, true) then
 					return true;
 				end
 			end	
@@ -208,7 +213,7 @@ type_player:addStep(function(arg, opts, compiler)
 		end
 		arg = arg:lower();
 		return true, xfn.filter(player.GetAll(), function(pl)
-			return pl:Name():lower():find(arg, 1, false);	
+			return pl:Name():lower():find(arg, 1, true);	
 		end);
 	end
 end);
@@ -347,7 +352,7 @@ do
 	local function findPlayer(name)
 		local res;
 		for k,v in pairs(player.GetAll())do
-			if v:Name():lower():find(name) then
+			if v:Name():lower():find(name, 1, true) then
 				if res then
 					return nil;
 				else

@@ -28,8 +28,6 @@ function oc.autocomplete.args( cmd_text, args, pl )
 	
 	local params = cmd.params;
 	
-	dprint('arg count: '..#args);
-	
 	local arg = args[#args];
 	local param = params[#args];
 	
@@ -68,7 +66,6 @@ function oc.autocomplete.args( cmd_text, args, pl )
 end
 
 function oc.autocomplete.general( text, pl )
-	dprint('running autocomplete');
 	local args = {oc.parseLine(text)};
 	if #args <= 1 then
 		return oc.autocomplete.commands( args[1] or '', pl);

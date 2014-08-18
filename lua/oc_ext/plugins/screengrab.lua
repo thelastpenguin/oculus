@@ -73,7 +73,7 @@ if CLIENT then
 	end)
 end
 
-local cmd = oc.command('utility', true, 'sg', function(pl, args)
+local cmd = oc.command('utility', 'sg', function(pl, args)
 	if SERVER then
 		ScreenGrabPlayer(pl, args.player)
 	end

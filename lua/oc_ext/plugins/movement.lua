@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 -- Goto                                                      --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', true, 'goto', function(pl, args)
+local cmd = oc.command( 'movement', 'goto', function(pl, args)
 	local pos = args.target:GetPos();
 	pos = oc.physics.FindEmptyPos(pos, {pl}, 600, 30, Vector(16, 16, 64))
 	
@@ -9,12 +9,13 @@ local cmd = oc.command( 'movement', true, 'goto', function(pl, args)
 
 	oc.notify_fancy(player.GetAll(), '#P went to #P.', pl, args.target)
 end)
+cmd:addFlag 'AdminMode'
 cmd:addParam 'target' { type = 'player' }
 
 ----------------------------------------------------------------
 -- Tele                                                       --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', true, 'tele', function(pl, args)
+local cmd = oc.command( 'movement', 'tele', function(pl, args)
 	if !args.target:Alive() then
 		args.target:Spawn()
 	end
@@ -28,12 +29,13 @@ local cmd = oc.command( 'movement', true, 'tele', function(pl, args)
 
 	oc.notify_fancy(player.GetAll(), '#P has teleported #P.', pl, args.target)
 end)
+cmd:addFlag 'AdminMode'
 cmd:addParam 'target' { type = 'player' }
 
 ----------------------------------------------------------------
 -- Return                                                     --
 ----------------------------------------------------------------
-local cmd = oc.command( 'movement', true, 'return', function(pl, args)
+local cmd = oc.command( 'movement', 'return', function(pl, args)
 	if !oc.p(args.target).LastPos then
 		oc.notify(pl, oc.cfg.color_error, 'This player has no last know position!')
 		return
@@ -46,6 +48,7 @@ local cmd = oc.command( 'movement', true, 'return', function(pl, args)
 	
 	oc.notify_fancy(player.GetAll(), '#P has returned #P.', pl, args.target)
 end)
+cmd:addFlag 'AdminMode'
 cmd:addParam 'target' { type = 'player' }
 
 ----------------------------------------------------------------
@@ -64,7 +67,7 @@ local function toggleFlying(pl)
 	end
 end
 
-local cmd = oc.command( 'movement', true, 'noclip', function( pl, args, meta )
+local cmd = oc.command( 'movement', 'noclip', function( pl, args, meta )
 	if args.target ~= pl then
 		if meta:playerGetExtraPerm('others') then
 			if not toggleFlying(args.target) then
@@ -86,6 +89,7 @@ local cmd = oc.command( 'movement', true, 'noclip', function( pl, args, meta )
 end)
 local cmd_noclip = cmd;
 cmd:addExtraPerm 'others';
+cmd:addFlag 'AdminMode'
 cmd:addParam 'target' { type = 'player', help = 'player to noclip', default = function(pl) return pl end }
 
 hook.Add('PlayerNoClip', 'oc.permCheck.PlayerNoClip', function(pl)

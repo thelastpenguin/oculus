@@ -2,7 +2,9 @@ local oc = oc;
 
 oc.commands = {};
 
--- STUBS REMOVE LATER
+function oc.canAdmin( pl )
+	return IsValid(pl) and oc.p(pl).AdminMode or true;
+end
 function oc.checkPerm( pl, perm )
 	if not IsValid(pl) then return true end
 	return oc.p(pl):getPerm(perm) and true or false;
@@ -29,6 +31,7 @@ function oc.command( category, command, action )
 	c.perm = 'cmd.'..command;
 	
 	c.params = {};
+	c.flags = {};
 	
 	setmetatable( c, command_mt );
 	
@@ -79,7 +82,7 @@ function command_mt:getParam( index )
 end
 
 -- get command
-function command_mt:getCommand( )
+function command_mt:getCommand( )	
 	return self.command;
 end
 
@@ -109,6 +112,12 @@ function command_mt:getExtraPerms()
 end
 function command_mt:runOnClient(func)
 	self.funcRunOnClient = func;
+end
+function command_mt:addFlag(flag)
+	self.flags[flag] = true;
+end
+function command_mt:hasFlag(flag)
+	return self.flags[flag];
 end
 
 
@@ -237,7 +246,7 @@ function oc.RunCommand( pl, meta, args )
 	-- process arguments.
 	local params = meta.params;
 	
-	local succ = oc.hook.Call( 'ProcessCMDArgs', pl, params, args );
+	local succ = oc.hook.Call('PlayerCanRunCommand', pl, meta);
 	if succ == false then return end
 	
 	local compiler = oc.parser.compile(params, args, pl);
@@ -260,3 +269,11 @@ function oc.RunCommand( pl, meta, args )
 		net.Send(pl);
 	end
 end
+
+
+oc.hook.Add('PlayerCanRunCommand', function(pl, meta)
+	if meta:hasFlag('AdminMode') and not oc.canAdmin(pl) then
+		oc.notify(pl, oc.cfg.color_error, 'You must enter admin mode to use this command!');
+		return false;
+	end
+end);

@@ -1,3 +1,4 @@
+local oc = oc;
 local ocp = oc.p;
 local Player = FindMetaTable('Player');
 

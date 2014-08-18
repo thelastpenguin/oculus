@@ -191,8 +191,6 @@ function player_mt:getPermNumber(perm)
 	return res and res[1] and tonumber(res[1], 16);
 end
 
-
-
 function player_mt:delPerm(perm, isGlobal, done)
 	oc.data.userDelPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, function()
 		self:fetchPerms(isGlobal, done);
@@ -234,6 +232,12 @@ function player_mt:syncPermTree(isGlobal)
 		(isGlobal and self.globalPerms or self.serverPerms):netWrite();
 	net.Send(self.player);
 end
+
+
+
+
+
+
 
 
 
