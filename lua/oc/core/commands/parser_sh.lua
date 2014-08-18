@@ -198,10 +198,11 @@ type_player:addStep(function(arg, opts, compiler)
 		return true, xfn.filter(player.GetAll(), function(pl)
 			local plName = pl:Name():lower();
 			for k,v in pairs(arg)do
-				if pl:Name():find(v, 1, true) then
+				if plName:find(v, 1, true) then
 					return true;
 				end
-			end	
+			end
+			return false;
 		end);
 	else
 		if stringIsSteamID(arg) then
@@ -236,7 +237,7 @@ end);
 
 type_player:addFancyFormat('P', function(arg)
 	local function output_player(res, pl)
-		res[#res+1] = team.GetColor(arg:Team());
+		res[#res+1] = team.GetColor(pl:Team());
 		res[#res+1] = pl:Name();
 	end
 	local start = os.clock();
