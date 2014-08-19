@@ -301,9 +301,10 @@ end);
 local type_time = oc.parser.newParamType('time');
 local time_mults = {
 	['m'] = 60,
-	['h'] = 60*60,
-	['d'] = 60*60*24,
-	['w'] = 60*60*24*7,
+	['h'] = 3600,
+	['d'] = 86400,
+	['w'] = 604800,
+	['y'] = 31536000
 };
 local time_divs = {'w','d','h','m'}
 type_time:addStep(function(arg, opts, compiler)
