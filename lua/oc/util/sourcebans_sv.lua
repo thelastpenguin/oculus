@@ -163,7 +163,8 @@ www.SuperiorServers.co
 
 local timeFormat = '%m/%d/%y - %H:%M'
 
-oc.hook.Add('PostGamemodeLoaded', function()
+
+local function inject()
 	function GAMEMODE:CheckPassword( steamid64, ipPort, serverPassword, userPassword, name)
 		if serverPassword and serverPassword:len() > 0 and serverPassword ~= userPassword then
 			return false, 'Password: '..userPassword..' is incorrect';
@@ -180,7 +181,10 @@ oc.hook.Add('PostGamemodeLoaded', function()
 			local ret = string.format(message, record.id, record.name, record.reason, bannedDate, unbanDate)
 			
 			return false, ret
-		end
+		end	
 		return true;
 	end
-end);
+end
+
+oc.hook.Add('PostGamemodeLoaded', inject);
+timer.Simple(10, inject); -- really make sure
