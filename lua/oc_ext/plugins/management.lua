@@ -211,8 +211,8 @@ end)
 -- Kick                                                       --
 ----------------------------------------------------------------
 local cmd = oc.command( 'management', 'kick', function( pl, args )
-	oc.notify_fancy( player.GetAll(), '#P kicked #P', pl, args.players );
 	args.player:Kick( args.reason );
+	oc.notify_fancy( player.GetAll(), '#P kicked #P', pl, args.players );
 end)
 cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'reason' { type = 'string', 'fill_line' }
