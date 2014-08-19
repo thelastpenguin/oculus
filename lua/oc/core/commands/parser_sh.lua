@@ -1,5 +1,5 @@
 local oc = oc;
-local string , table , pairs , ipairs = string , table , pairs , ipairs ;
+local string , table , math , pairs , ipairs = string , table , math , pairs , ipairs ;
 local isfunction , istable , type = isfunction , istable , type ;
 
 
@@ -306,7 +306,7 @@ local time_mults = {
 	['w'] = 604800,
 	['y'] = 31536000
 };
-local time_divs = {'w','d','h','m'}
+local time_divs = {'y','w','d','h','m'}
 type_time:addStep(function(arg, opts, compiler)
 	arg = arg:lower();
 	
@@ -331,15 +331,16 @@ end);
 
 type_time:addFancyFormat('T', function(arg)
 	local output = {};
-	local mult, leftOver;
-	for k,v in pairs(time_divs)do
-		mult = time_mults[v];
-		leftOver = arg % mult;
-		if leftOver > 0 then
-			output[#output+1] = leftOver .. v
-			leftOver = leftOver - leftOver;
+	
+	for _, timediv in ipairs(time_divs) do
+		local mult = time_mults[timediv];
+		local temp = math.floor(arg/mult);
+		if temp > 0 then
+			output[#output+1] = temp..timediv;
+			arg = arg - temp * mult;
 		end
 	end
+	
 	return oc.cfg.color_time, table.concat(output, ' ');
 end);
 type_time:setAutoComplete(function()

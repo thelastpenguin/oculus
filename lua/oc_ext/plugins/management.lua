@@ -237,6 +237,11 @@ cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'len' { type = 'time' }
 cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
 
+local cmd = oc.command( 'managment', 'timetest', function(pl, args)
+	oc.notify_fancy( player.GetAll(), '#T', args.time);
+end);
+cmd:addParam 'time' { type = 'time' }
+
 local cmd = oc.command( 'management', 'banid', function( pl, args )
 	local record = oc.sb.checkSteamID(args.steamid);
 	if record then
