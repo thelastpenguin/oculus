@@ -17,9 +17,7 @@ oc.data.hostaddr = oc.data.hostip..':'..oc.data.hostport;
 -- LOCALS
 local db = oc._db;
 local svid;
-function data.svId()
-	return svid;
-end
+local svgid;
 
 --
 -- INITIALIZATION
@@ -27,6 +25,7 @@ end
 local function GetServerID()
 	local data = db:query_sync("SELECT * FROM oc_servers WHERE host_ip = '?'", {oc.data.hostaddr});
 	svid = data[1] and data[1].sv_id;
+	svgid = data[1] and data[1].svg_id;
 end
 
 
@@ -38,12 +37,18 @@ function oc.data.init()
 	end
 	oc.LoadMsg( 2, 'database initialized' );
 	oc.LoadMsg( 2, 'server id: '..svid );
+	oc.LoadMsg( 2, 'server group id: '..(svgid or 'none'));
+	
+	data._svid = svid;
+	data.svid = svgid or svid;
 	
 	db:query_sync("UPDATE oc_user_perms SET perm=expires_perm, expires_perm = NULL, expires = NULL WHERE expires<?", {os.time()});
 	
 	oc.LoadMsg( 2, 'Rewrote Expired Permissions' );
 	
-	data.svid = svid;
+	timer.Simple(1, function()
+		db:query_ex('UPDATE oc_servers SET host_name=\'?\' WHERE sv_id=?', {GetConVarString('hostname'), data._svid});	
+	end);
 end
 oc.data.init();
 

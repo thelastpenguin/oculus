@@ -1,0 +1,14 @@
+"LightMappedGeneric"
+{
+	"$basetexture" "oc/anim/loading"
+	"$surfaceprop" "Default"
+	"Proxies" 
+	{ 
+		"AnimatedTexture" 
+		{ 
+			"animatedTextureVar" "$basetexture" 
+			"animatedTextureFrameNumVar" "$frame" 
+			"animatedTextureFrameRate" "6" 
+		}
+	}
+}

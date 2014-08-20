@@ -47,11 +47,9 @@ function view_mt:canOpen()
 	end
 end
 
-local view_motd = oc.menu.addView('motd', 'MOTD');
-local view_cmds = oc.menu.addView('cmds', 'ACTIONS');
-local view_groups = oc.menu.addView('groups', 'GROUPS');
-view_groups:setIcon('oc/icon64/group2.png');
-local view_players = oc.menu.addView('players', 'PLAYERS');
-view_players:setIcon('oc/icon64/search7.png');
-local view_bans = oc.menu.addView('bans', 'BANS');
-view_bans:setIcon('oc/icon64/trash8.png');
+
+oc.include_cl '../views/view_google.lua' 'view: google'
+oc.include_cl '../views/view_commands.lua' 'view: commands'
+oc.include_cl '../views/view_groups.lua' 'view: groups'
+oc.include_cl '../views/view_players.lua' 'view: players'
+oc.include_cl '../views/view_bans.lua' 'view: bans'

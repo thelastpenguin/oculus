@@ -10,3 +10,12 @@ oc.include_cl 'vgui/main.lua' 'vgui main';
 oc.include_sh 'core/views_sh.lua' 'views shared';
 
 oc.LoadModules( 'oc_ext/modules/menu/tabs/' );
+
+
+local menu;
+local cmd = oc.command( 'menu', 'menu', function( pl, args )
+end);
+cmd:runOnClient(function()
+	if ValidPanel(menu) then menu:Remove() end
+	menu = vgui.Create('oc_main');
+end);
