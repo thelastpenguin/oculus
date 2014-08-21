@@ -28,7 +28,7 @@ cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.au
 -- player del perm
 local cmd = oc.command( 'permissions', 'playerdellocalperm', function( pl, args )
 	oc.p(args.player, function(meta)
-		meta:addPerm(args.perm, false, function()
+		meta:delPerm(args.perm, false, function()
 			oc.notify_fancy( player.GetAll(), '#P removed local permission #S from #P.', pl, args.perm, args.player );
 		end);
 	end);
@@ -40,7 +40,7 @@ cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', op
 -- player del perm
 local cmd = oc.command( 'permissions', 'playerdelglobalperm', function( pl, args )
 	oc.p(args.player, function(meta)
-		meta:addPerm(args.perm, true, function()
+		meta:delPerm(args.perm, true, function()
 			oc.notify_fancy( player.GetAll(), '#P removed global permission #S from #P.', pl, args.perm, args.player );
 		end);
 	end);
