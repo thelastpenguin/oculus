@@ -1,6 +1,6 @@
 local oc = oc;
 local string , table , math , pairs , ipairs = string , table , math , pairs , ipairs ;
-local isfunction , istable , type = isfunction , istable , type ;
+local isfunction , istable , type , IsValid = isfunction , istable , type , IsValid ;
 
 
 oc.parser = {};
@@ -12,6 +12,7 @@ paramtype_mt.__index = paramtype_mt;
 
 
 local param_types = {};
+oc.parser.param_types = param_types;
 
 function oc.parser.newParamType( type )
 	dprint('created new param type: '..type);
@@ -23,6 +24,10 @@ function oc.parser.newParamType( type )
 end
 
 function paramtype_mt:process(arg, opts, compiler)
+	if arg:len() == 0 then
+		return false, 'arg string must have length > 0';
+	end
+	
 	local orig = arg;
 	local succ, res;
 	for k,v in pairs(self.steps)do
@@ -59,6 +64,18 @@ end
 
 function paramtype_mt:setAutoComplete(func)
 	self.autocompleter = func;
+end
+
+function paramtype_mt:genVGUIPanel(param, parent)
+	if not self.vguiGenerator then return end
+	local panel = self.vguiGenerator(param)
+	panel:SetParent(parent);
+	panel:Dock(TOP);
+	return panel;
+end
+
+function paramtype_mt:setVGUIGenerator(func)
+	self.vguiGenerator = func;	
 end
 
 --
@@ -140,7 +157,6 @@ function compiler_mt:throwError(msg)
 	self.error = msg;
 end
 
-
 function compiler_mt:popArg()
 	return table.remove(self.args, 1);
 end
@@ -153,8 +169,6 @@ end
 --
 -- REGISTER ARGUMENT TYPES
 --
-
-
 local function stringIsSteamID(str)
 	return str:match('STEAM_[%d]:[%d]:[%d]+') == str;
 end
@@ -236,16 +250,30 @@ type_player:addStep(function(arg, opts, compiler)
 end);
 
 type_player:addFancyFormat('P', function(arg)
+	local res = {};
 	local function output_player(res, pl)
-		res[#res+1] = team.GetColor(pl:Team());
-		res[#res+1] = pl:Name();
+		if istable(pl) then
+			if pl.player then
+				output_player(res, pl.player);
+			elseif res.steamid then
+				res[#res+1] = oc.cfg.color_string;
+				res[#res+1] = pl.steamid;
+			end
+		else
+			if IsValid(pl) then
+				res[#res+1] = team.GetColor(pl:Team());
+				res[#res+1] = pl:Name();
+			else
+				res[#res+1] = Color(0,0,0);
+				res[#res+1] = '(Console)';
+			end
+		end
 	end
 	local start = os.clock();
-	if istable(arg) then
+	if istable(arg) and arg[1] then
 		if #arg == #player.GetAll() then
 			return oc.cfg.color_everyone, 'everyone';
 		else
-			local res = {};
 			
 			local len = #arg;
 			if len == 1 then
@@ -259,21 +287,28 @@ type_player:addFancyFormat('P', function(arg)
 				res[#res+1] = 'and ';
 				output_player(res, arg[len]);
 			end
-			return unpack(res);
 		end
 	else
-		if not IsValid(arg) then
-			return Color(0,0,0), '(Console)';
-		else
-			return team.GetColor(arg:Team()), arg:Name();
-		end
+		output_player(res, arg);
 	end
+	return unpack(res);
 end);
 
 type_player:setAutoComplete(function(param, pl)
 	return xfn.map(player.GetAll(), function(pl)
 		return pl:Name()
 	end);
+end);
+
+type_player:setVGUIGenerator(function(param)
+	local panel = vgui.Create('DTextEntry');
+	panel.OnGetFocus = function()
+	
+	end
+	panel.OnLoseFocus = function()
+	
+	end
+	return panel;
 end);
 
 
@@ -411,9 +446,8 @@ do
 		end
 	end);
 
-	local mt_SteamID = FindMetaTable('Player').SteamID;
 	type_steamid:setAutoComplete(function(opts)
-		return xfn.map(player.GetAll(), mt_SteamID);
+		return xfn.map(player.GetAll(), function(pl) return pl:Name() end);
 	end);
 end
 

@@ -1,37 +1,49 @@
 
 -- player add perm
 local cmd = oc.command( 'permissions', 'playeraddlocalperm', function( pl, args )
-	oc.p(args.player):addPerm(args.perm, false);
-	oc.notify_fancy( player.GetAll(), '#P granted #P local permission #S.', pl, args.player, args.perm );
+	oc.p(args.player, function(meta)
+		meta:addPerm(args.perm, false, function()
+			oc.notify_fancy( player.GetAll(), '#P granted #P local permission #S.', pl, meta, args.perm );
+		end);
+	end);
 end)
 cmd:setHelp 'grant the player local access to the specified permission'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
+cmd:addParam 'player' { type = 'steamid', help = 'target player' }
 cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 -- player add perm
 local cmd = oc.command( 'permissions', 'playeraddglobalperm', function( pl, args )
-	oc.p(args.player):addPerm(args.perm, true);
-	oc.notify_fancy( player.GetAll(), '#P granted #P global permission #S.', pl, args.player, args.perm );
+	oc.p(args.player, function(meta)
+		meta:addPerm(args.perm, true, function()
+			oc.notify_fancy( player.GetAll(), '#P granted #P global permission #S.', pl, args.player, args.perm );
+		end);
+	end);
 end)
 cmd:setHelp 'grant the player global access to the specified permission'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
+cmd:addParam 'player' { type = 'steamid', help = 'target player' }
 cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
 
 
 -- player del perm
 local cmd = oc.command( 'permissions', 'playerdellocalperm', function( pl, args )
-	oc.p(args.player):delPerm(args.perm, false);
-	oc.notify_fancy( player.GetAll(), '#P removed local permission #S from #P.', pl, args.perm, args.player );
+	oc.p(args.player, function(meta)
+		meta:addPerm(args.perm, false, function()
+			oc.notify_fancy( player.GetAll(), '#P removed local permission #S from #P.', pl, args.perm, args.player );
+		end);
+	end);
 end)
 cmd:setHelp 'remove local access to the specified perm from the player'
-cmd:addParam 'player' { type = 'player', help = 'target player'}
+cmd:addParam 'player' { type = 'steamid', help = 'target player'}
 cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', options = oc.autocomplete.perms}
 
 -- player del perm
 local cmd = oc.command( 'permissions', 'playerdelglobalperm', function( pl, args )
-	oc.p(args.player):delPerm(args.perm, true);
-	oc.notify_fancy( player.GetAll(), '#P removed global permission #S from #P.', pl, args.perm, args.player );
+	oc.p(args.player, function(meta)
+		meta:addPerm(args.perm, true, function()
+			oc.notify_fancy( player.GetAll(), '#P removed global permission #S from #P.', pl, args.perm, args.player );
+		end);
+	end);
 end)
 cmd:setHelp 'remove global access to the specified perm from the player'
 cmd:addParam 'player' { type = 'player', help = 'target player'}

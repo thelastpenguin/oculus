@@ -3,16 +3,25 @@ local oc = oc;
 local player_mt = {};
 player_mt.__index = player_mt;
 
+local player_offline_mt = {};
+player_offline_mt.__index = player_offline_mt;
+
 local players = {};
 oc._players = players;
-function oc.p( pl )
+function oc.p( pl, callback )
+	local t = type(pl);
 	if players[pl] then
 		return players[pl];
-	elseif(IsValid(pl))then
+	elseif(t == 'Player' and IsValid(pl))then
 		local new = setmetatable( {player=pl}, player_mt);
 		new.state = 'loading';
-		new:load(xfn.noop);
+		new:load(callback or xfn.noop);
 		players[pl] = new;
+		return new;
+	elseif(t == 'string')then
+		dprint('steamid provided for init');
+		local new = setmetatable({steamid = pl}, player_offline_mt);
+		new:load(callback or xfn.noop);
 		return new;
 	end
 end
@@ -22,7 +31,6 @@ end
 -- LOAD USERS
 --
 function player_mt:load(done)
-	oc.hook.Call('PlayerStartLoad', self);
 	async.series({
 		-- fetch userid
 		function( done )
@@ -75,6 +83,8 @@ function player_mt:load(done)
 				self:syncPermTree(true);
 				self:syncPermTree(false);
 			end);
+		elseif self.steamid then
+			dprint('loaded player '..self.steamid)
 		end
 		
 		done();
@@ -87,8 +97,8 @@ function player_mt:loadInheritance()
 	self.primaryGroup = oc.g(self:getPermNumber('group.primary')) or oc.g(oc.cfg.group_user);
 	if self.player then
 		self.player:SetUserGroup(self.primaryGroup.name);
+		self.player:SetNWInt('pgid', self.primaryGroup.gid);
 	end
-	
 end
 
 function player_mt:setGroup( group, isGlobal, done )
@@ -238,7 +248,82 @@ end
 
 
 
+--
+-- OFFLINE PLAYER OBJECT
+--
+function player_offline_mt:load(callback)
+	-- link to an actual player if avaliable
+	for _, pl in pairs(player.GetAll())do
+		if pl:SteamID() == self.steamid then
+			self.player = pl;
+			break ;
+		end
+	end
+	
+	dprint('initializing offline player: '..self.steamid);
+	oc.data.userFetchID( self.steamid, function(uid)
+		if not uid then
+			dprint('failed to find user with steamid: '..self.steamid);
+			dprint('creating a new user instead');
+			oc.data.userCreateSteamID(self.steamid, function()
+				dprint('created new user with the steamid: '..self.steamid);
+				oc.data.userFetchID( self.steamid, function(uid)
+					dprint('loaded uid of newly created user: '..self.uid);
+					self.uid = uid;
+					callback();	
+				end);
+			end);
+		else
+			dprint('found user with uid: '..uid);
+			self.uid = uid;
+			callback(self);
+		end
+	end);
+end
 
+function player_offline_mt:addPerm(perm, isGlobal, done)
+	dprint('adding permission thingy');
+	dprint(oc.data.svid);
+	return oc.data.userAddPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, function()
+		if self.player then
+			oc.p(self.player):fetchPerms(isGlobal, done or xfn.noop);
+		elseif done then
+			done();
+		end	
+	end);
+end
+
+function player_offline_mt:delPerm(perm, isGlobal, done)
+	return oc.data.userDelPerm( isGlobal and 0 or oc.data.svid, self.uid, perm, function()
+		if self.player then
+			oc.p(self.player):fetchPerms(isGlobal, done or xfn.noop);
+		elseif done then
+			done();
+		end
+	end);
+end
+
+function player_offline_mt:setGroup( group, isGlobal, done )
+	async.series({
+		xfn.fn_partial(self.delPerm, self, 'group.primary', isGlobal or false),
+		xfn.fn_partial(self.setPermNumber, self, 'group.primary', group, isGlobal or false),
+	}, function()
+		if done then done() end
+	end);
+end
+function player_offline_mt:addPermNumber(perm, value, isGlobal, done)
+	return self:addPerm(perm..'.'..tonumber(value, 16), isGlobal, done);
+end
+function player_offline_mt:setPermString(perm, value, isGlobal, done)
+	return self:delPerm(perm, isGlobal, function() 
+		self:addPerm(perm..'.'..value, isGlobal, done);
+	end);
+end
+function player_offline_mt:setPermNumber(perm, value, isGlobal, done)
+	return self:delPerm(perm, isGlobal, function()
+		self:addPerm(string.format('%s.%x', perm, value), isGlobal, done);
+	end);
+end
 
 
 oc.hook.Add('PlayerInitialSpawn', function(pl)

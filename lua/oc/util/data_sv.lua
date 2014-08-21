@@ -67,6 +67,9 @@ end
 function oc.data.userCreate( pl, done )
 	return db:query_ex("REPLACE INTO oc_users (steamid,displayName,ip)VALUES('?','?','?')", {pl:SteamID(), pl:Name(), pl:IPAddress()}, done);
 end
+function oc.data.userCreateSteamID(steamid, done)
+	return db:query_ex("REPLACE INTO oc_users (steamid,displayName,ip)VALUES('?','?','?')", {steamid, 'John Doe', '127.0.0.1'}, done);
+end
 function oc.data.userUpdate( uid, pl, done )
 	return db:query_ex("UPDATE oc_users SET displayName='?', ip='?' WHERE u_id=?", {pl:Name(), pl:IPAddress(), uid}, done);
 end

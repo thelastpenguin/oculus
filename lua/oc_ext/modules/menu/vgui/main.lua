@@ -62,6 +62,8 @@ vgui.Register('oc_main', {
 		self:MakePopup();
 		
 		self.tabCache = {};
+		
+		self:SetSkin('Default');
 	end,
 	
 	Update = function(self)
@@ -91,6 +93,7 @@ vgui.Register('oc_main', {
 			dprint('  creating fresh render');
 			self:CreateBody();
 			tab:runGenerator(self.body);
+			tab:runUpdater(self.body);
 			self.tabCache[tab] = self.body;
 		end
 		

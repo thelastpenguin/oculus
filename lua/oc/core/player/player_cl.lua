@@ -35,7 +35,8 @@ end
 -- LOADS INHERITED PERMISSIONS
 function player_mt:loadInheritance()
 	-- load primary usergroup
-	self.primaryGroup = oc.g(self:getPermNumber('group.primary') or oc.cfg.group_user) or oc.g(oc.cfg.group_user);
+	local primaryGroupId = self:getPermNumber('group.primary') or self:GetNWInt('pgid');
+	self.primaryGroup = oc.g(primaryGroupId or oc.cfg.group_user) or oc.g(oc.cfg.group_user);
 end
 
 function player_mt:getImmunity() 
@@ -58,7 +59,7 @@ function player_mt:getPerm( perm )
 end
 function player_mt:getPermString(perm)
 	local res = self:getPerm(perm);
-	return res and res[1]	
+	return res and res[1]
 end
 function player_mt:getPermNumber(perm)
 	local res = self:getPerm(perm);
