@@ -46,7 +46,7 @@ local cmd = oc.command( 'permissions', 'playerdelglobalperm', function( pl, args
 	end);
 end)
 cmd:setHelp 'remove global access to the specified perm from the player'
-cmd:addParam 'player' { type = 'player', help = 'target player'}
+cmd:addParam 'player' { type = 'steamid', help = 'target player'}
 cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', options = oc.autocomplete.perms}
 
 
