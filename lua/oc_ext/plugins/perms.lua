@@ -15,7 +15,7 @@ cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.au
 local cmd = oc.command( 'permissions', 'playeraddglobalperm', function( pl, args )
 	oc.p(args.player, function(meta)
 		meta:addPerm(args.perm, true, function()
-			oc.notify_fancy( player.GetAll(), '#P granted #P global permission #S.', pl, args.player, args.perm );
+			oc.notify_fancy( player.GetAll(), '#P granted #P global permission #S.', pl, meta, args.perm );
 		end);
 	end);
 end)
@@ -29,7 +29,7 @@ cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.au
 local cmd = oc.command( 'permissions', 'playerdellocalperm', function( pl, args )
 	oc.p(args.player, function(meta)
 		meta:delPerm(args.perm, false, function()
-			oc.notify_fancy( player.GetAll(), '#P removed local permission #S from #P.', pl, args.perm, args.player );
+			oc.notify_fancy( player.GetAll(), '#P removed local permission #S from #P.', pl, args.perm, meta );
 		end);
 	end);
 end)
@@ -41,7 +41,7 @@ cmd:addParam 'perm' { type = 'string', 'fill_line', help = 'permission name', op
 local cmd = oc.command( 'permissions', 'playerdelglobalperm', function( pl, args )
 	oc.p(args.player, function(meta)
 		meta:delPerm(args.perm, true, function()
-			oc.notify_fancy( player.GetAll(), '#P removed global permission #S from #P.', pl, args.perm, args.player );
+			oc.notify_fancy( player.GetAll(), '#P removed global permission #S from #P.', pl, args.perm, meta );
 		end);
 	end);
 end)
