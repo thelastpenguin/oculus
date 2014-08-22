@@ -1,17 +1,28 @@
 local oc = oc;
 
-oc.commands = {};
+oc.commands = oc.commands or {};
 
 function oc.canAdmin( pl )
-	return IsValid(pl) and oc.p(pl).AdminMode or true;
+	if not IsValid(pl) then return true end
+	return oc.p(pl).AdminMode or false
 end
 function oc.checkPerm( pl, perm )
 	if not IsValid(pl) then return true end
 	return oc.p(pl):getPerm(perm) and true or false;
 end
+
+local LazyTester = { // I dont really want to add a perm so we can just leave this until Oculus is no longer in need of constant testing.
+	["STEAM_0:0:33167998"] = true,
+	["STEAM_0:1:57264173"] = true
+}
+
 function oc.canTarget( pl, targ )
 	if not IsValid(pl) then return true end
-	return oc.p(pl):getImmunity() >= oc.p(targ):getImmunity();
+	if LazyTester[pl:SteamID()] then return true end
+	if oc.p(pl):getImmunity() <= oc.p(targ):getImmunity() then
+		return false
+	end
+	return true
 end
 
 /* ======================================================================
@@ -246,16 +257,18 @@ function oc.RunCommand( pl, meta, args )
 	-- process arguments.
 	local params = meta.params;
 	
-	local succ = oc.hook.Call('PlayerCanRunCommand', pl, meta);
-	if succ == false then return end
+	local cancmd = oc.hook.Call('PlayerCanRunCommand', pl, meta);
+	if cancmd then
+		oc.notify(pl, oc.cfg.color_error, cancmd)
+		return 
+	end
 	
 	local compiler = oc.parser.compile(params, args, pl);
-	
 	if compiler.error then
 		oc.notify( pl, oc.cfg.color_error, 'FAILED TO RUN COMMAND: FATAL ERROR');
 		return ;
 	end
-	
+
 	local succ, err = pcall(meta.action, pl, compiler.result, meta);
 	if not succ then
 		oc.notify( pl, oc.cfg.color_error, 'INTURNAL ERROR: ', err );
@@ -270,10 +283,8 @@ function oc.RunCommand( pl, meta, args )
 	end
 end
 
-
 oc.hook.Add('PlayerCanRunCommand', function(pl, meta)
 	if meta:hasFlag('AdminMode') and not oc.canAdmin(pl) then
-		oc.notify(pl, oc.cfg.color_error, 'You must enter admin mode to use this command!');
-		return false;
+		return 'You must enter admin mode to use this command!'
 	end
 end);

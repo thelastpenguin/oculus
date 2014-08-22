@@ -249,6 +249,12 @@ type_player:addStep(function(arg, opts, compiler)
 	end
 end);
 
+type_player:addStep(function(arg, opts, compiler)
+	if !oc.canTarget(compiler.player, arg[1]) then
+		return false, 'You cannot target this player!'
+	end
+end)
+
 type_player:addFancyFormat('P', function(arg)
 	local res = {};
 	local function output_player(res, pl)
