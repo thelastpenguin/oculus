@@ -233,6 +233,15 @@ type_player:addStep(function(arg, opts, compiler)
 	end
 end);
 
+type_player:addStep(function(arg, _, compiler)
+	local pl;
+	for k,v in pairs(arg)do
+		if not oc.canTarget(pl, v) then
+			return false, 'You can not target player '..v:Name();
+		end
+	end
+end);
+
 type_player:addStep(function(arg, opts, compiler)
 	if #arg == 0 then
 		return false, 'No targets found';
@@ -248,12 +257,6 @@ type_player:addStep(function(arg, opts, compiler)
 		end
 	end
 end);
-
-type_player:addStep(function(arg, opts, compiler)
-	if !oc.canTarget(compiler.player, arg[1]) then
-		return false, 'You cannot target this player!'
-	end
-end)
 
 type_player:addFancyFormat('P', function(arg)
 	local res = {};
