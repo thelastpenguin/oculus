@@ -163,13 +163,6 @@ www.SuperiorServers.co
 
 local timeFormat = '%m/%d/%y - %H:%M'
 
--- think ur a badass coder? Ima remove ur hooks. Come at me.
-if hook.GetTable()['CheckPassword'] then
-	for id, _ in pairs(hook.GetTable()['CheckPassword'])do
-		hook.Remove('CheckPassword', id);
-	end
-end
-
 hook.Add('CheckPassword', 'oc.SourceBans', function(steamid64, ipPort, serverPassword, userPassword, name)
 	if serverPassword and serverPassword:len() > 0 and serverPassword ~= userPassword then
 		return false, 'Password: '..userPassword..' is incorrect';
