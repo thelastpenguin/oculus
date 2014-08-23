@@ -1,10 +1,9 @@
 local paramtype_mt = oc.parser.paramtype_mt;
 
-function paramtype_mt:genVGUIPanel(param, parent)
+function paramtype_mt:genVGUIPanel(param, parent, resFunc)
 	if not self.vguiGenerator then return end
-	local panel = self.vguiGenerator(param)
+	local panel = self.vguiGenerator(param, resFunc)
 	panel:SetParent(parent);
-	panel:Dock(TOP);
 	return panel;
 end
 

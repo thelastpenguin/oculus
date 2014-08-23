@@ -4,7 +4,7 @@ view_mt.__index = view_mt;
 oc.menu.views = {};
 function oc.menu.addView( id, name )
 	local obj = setmetatable({
-		vid = id,
+		vid = id,	
 		name = name,
 		icon = 'oc/icon64/little17.png',
 	}, view_mt);

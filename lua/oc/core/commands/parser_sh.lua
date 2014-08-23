@@ -25,10 +25,6 @@ function oc.parser.newParamType( type )
 end
 
 function paramtype_mt:process(arg, opts, compiler)
-	if arg:len() == 0 then
-		return false, 'arg string must have length > 0';
-	end
-	
 	local orig = arg;
 	local succ, res;
 	for k,v in pairs(self.steps)do

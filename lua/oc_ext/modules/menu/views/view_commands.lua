@@ -82,15 +82,40 @@ function view_cmds:DisplayCommand(cmd)
 	local container = makeScrollPanel(self.body);
 	container:Dock(FILL);
 	
+	local panels = {};
+	local results = {};
 	for _, param in pairs(cmd.params)do
 		local type_meta = oc.parser.param_types[param.type];
 		
-		local lbl = Label(param.pid, self.body);
+		local lbl = Label(param.pid, container);
 		lbl:SetTextColor(color_black)
 		lbl:SetFont('oc_menu_8');
-		lbl:Dock(TOP);
+		lbl:SizeToContents();
 		
-		type_meta:genVGUIPanel(param, self.body);
+		if param.optional then
+			lbl:SetTextColor(Color(155,155,155));
+			lbl:SetText('[OPTIONAL] '..lbl:GetText());
+		end
+		
+		panels[#panels+1] = lbl;
+		
+		local panel = type_meta:genVGUIPanel(param, container, function(res)
+			results[param.pid] = res;
+			dprint('updated value for param '..param.pid..' to '..tostring(res));
+		end);
+		panels[#panels+1] = panel;
+	end
+	
+	local oldLayout = container.PerformLayout;
+	function container.PerformLayout()
+		oldLayout(container);
+		
+		local w, h = self.body:GetWide(), 0;
+		for k,v in pairs(panels)do
+			v:SetPos(4, h)
+			v:SetWide(w-8);
+			h = h + v:GetTall();
+		end
 	end
 	
 end
