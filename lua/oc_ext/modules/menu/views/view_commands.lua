@@ -36,6 +36,7 @@ end);
 
 view_cmds:setUpdater(function(self, panel, done)
 	local cmdList = self.cmdList;
+	cmdList:Clear();
 	
 	-- POPULATE CATEGORIES
 	local cmdCategories = {};

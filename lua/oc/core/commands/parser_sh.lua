@@ -13,6 +13,7 @@ paramtype_mt.__index = paramtype_mt;
 
 local param_types = {};
 oc.parser.param_types = param_types;
+oc.parser.paramtype_mt = paramtype_mt;
 
 function oc.parser.newParamType( type )
 	dprint('created new param type: '..type);
@@ -66,17 +67,6 @@ function paramtype_mt:setAutoComplete(func)
 	self.autocompleter = func;
 end
 
-function paramtype_mt:genVGUIPanel(param, parent)
-	if not self.vguiGenerator then return end
-	local panel = self.vguiGenerator(param)
-	panel:SetParent(parent);
-	panel:Dock(TOP);
-	return panel;
-end
-
-function paramtype_mt:setVGUIGenerator(func)
-	self.vguiGenerator = func;	
-end
 
 --
 -- AUTOCOMPLETE THE GIVEN ARG
@@ -264,7 +254,7 @@ type_player:addFancyFormat('P', function(arg)
 		if istable(pl) then
 			if pl.player then
 				output_player(res, pl.player);
-			elseif res.steamid then
+			elseif pl.steamid then
 				res[#res+1] = oc.cfg.color_string;
 				res[#res+1] = pl.steamid;
 			end
@@ -308,18 +298,6 @@ type_player:setAutoComplete(function(param, pl)
 		return pl:Name()
 	end);
 end);
-
-type_player:setVGUIGenerator(function(param)
-	local panel = vgui.Create('DTextEntry');
-	panel.OnGetFocus = function()
-	
-	end
-	panel.OnLoseFocus = function()
-	
-	end
-	return panel;
-end);
-
 
 
 --

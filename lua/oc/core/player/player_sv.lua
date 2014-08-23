@@ -268,9 +268,9 @@ function player_offline_mt:load(callback)
 			oc.data.userCreateSteamID(self.steamid, function()
 				dprint('created new user with the steamid: '..self.steamid);
 				oc.data.userFetchID( self.steamid, function(uid)
-					dprint('loaded uid of newly created user: '..self.uid);
+					dprint('loaded uid of newly created user: '..uid);
 					self.uid = uid;
-					callback();	
+					callback(self);	
 				end);
 			end);
 		else

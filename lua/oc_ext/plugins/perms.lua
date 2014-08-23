@@ -58,18 +58,21 @@ local cmd = oc.command( 'permissions', 'playersetlocalgroup', function( pl, args
 		return ;
 	end
 	if args.time then
-		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary local group to #G for #T with fallback group #G', pl, args.player, args.group, args.time, args.fallback );
-		oc.p(args.player):setGroup(args.group.gid, false, function()
-			oc.p(args.player):addTempPerm(string.format('group.primary.%x', args.group.gid), string.format('group.primary.%x', args.fallback.gid), os.time() + args.time, false );
+		oc.p(args.player, function(meta)
+			oc.notify_fancy( player.GetAll(), '#P set #P\'s primary local group to #G for #T with fallback group #G', pl, meta, args.group, args.time, args.fallback );
+			meta:setGroup(args.group.gid, false, function()
+				meta:addTempPerm(string.format('group.primary.%x', args.group.gid), string.format('group.primary.%x', args.fallback.gid), os.time() + args.time, false );
+			end);
 		end);
 	else
-		oc.p(args.player):setGroup(args.group.gid, false);
-		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary local group to #G', pl, args.player, args.group );
+		oc.p(args.player, function(meta)
+			oc.notify_fancy( player.GetAll(), '#P set #P\'s primary local group to #G', pl, meta, args.group );
+			meta:setGroup(args.group.gid, false);
+		end);
 	end
-	
 end)
 cmd:setHelp 'set the player\'s local group'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
+cmd:addParam 'player' { type = 'steamid', help = 'target player' }
 cmd:addParam 'group' { type = 'group', help = 'primary group' }
 cmd:addParam 'time' { type = 'time', 'optional' }
 cmd:addParam 'fallback' { type = 'group', 'optional' }
@@ -81,18 +84,21 @@ local cmd = oc.command( 'permissions', 'playersetglobalgroup', function( pl, arg
 		return ;
 	end
 	if args.time then
-		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G for #T with fallback group #G', pl, args.player, args.group, args.time, args.fallback );
-		oc.p(args.player):setGroup(args.group.gid, function()
-			oc.p(args.player):addTempPerm(string.format('group.primary.%x', args.group.gid), string.format('group.primary.%x', args.fallback.gid), os.time() + args.time, true );
+		oc.p(args.player, function(meta)
+			meta:setGroup(args.group.gid, true, function()
+				oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G for #T with fallback group #G', pl, meta, args.group, args.time, args.fallback );
+				meta:addTempPerm(string.format('group.primary.%x', args.group.gid), string.format('group.primary.%x', args.fallback.gid), os.time() + args.time, true );
+			end);
 		end);
 	else
-		oc.p(args.player):setGroup(args.group.gid, true);
-		oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G', pl, args.player, args.group );
+		oc.p(args.player, function(meta)
+			oc.notify_fancy( player.GetAll(), '#P set #P\'s primary global group to #G', pl, meta, args.group);
+			meta:setGroup(args.group.gid, true);
+		end);
 	end
-	
 end)
 cmd:setHelp 'set the player\'s global group'
-cmd:addParam 'player' { type = 'player', help = 'target player' }
+cmd:addParam 'player' { type = 'steamid', help = 'target player' }
 cmd:addParam 'group' { type = 'group', help = 'primary group' }
 cmd:addParam 'time' { type = 'time', 'optional' }
 cmd:addParam 'fallback' { type = 'group', 'optional' }
