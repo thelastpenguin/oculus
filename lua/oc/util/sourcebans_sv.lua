@@ -163,28 +163,29 @@ www.SuperiorServers.co
 
 local timeFormat = '%m/%d/%y - %H:%M'
 
-
-local function inject()
-	function GAMEMODE:CheckPassword( steamid64, ipPort, serverPassword, userPassword, name)
-		if serverPassword and serverPassword:len() > 0 and serverPassword ~= userPassword then
-			return false, 'Password: '..userPassword..' is incorrect';
-		end
-		local steamid = util.SteamIDFrom64( steamid64 );
-		dprint('decoded connecting player steamid: '..steamid);
-		
-		local record = oc.sb.checkSteamID( steamid );
-		if record then
-			
-			local bannedDate = os.date(timeFormat, record.create_time);
-			local unbanDate = os.date(timeFormat, record.create_time + record.length * 60);
-			
-			local ret = string.format(message, record.id, record.name, record.reason, bannedDate, unbanDate)
-			
-			return false, ret
-		end	
-		return true;
+-- think ur a badass coder? Ima remove ur hooks. Come at me.
+if hook.GetTable()['CheckPassword'] then
+	for id, _ in pairs(hook.GetTable()['CheckPassword'])do
+		hook.Remove('CheckPassword', id);
 	end
 end
 
-oc.hook.Add('PostGamemodeLoaded', inject);
-timer.Simple(10, inject); -- really make sure
+hook.Add('CheckPassword', 'oc.SourceBans', function(steamid64, ipPort, serverPassword, userPassword, name)
+	if serverPassword and serverPassword:len() > 0 and serverPassword ~= userPassword then
+		return false, 'Password: '..userPassword..' is incorrect';
+	end
+	local steamid = util.SteamIDFrom64( steamid64 );
+	dprint('decoded connecting player steamid: '..steamid);
+	
+	local record = oc.sb.checkSteamID( steamid );
+	if record then
+		
+		local bannedDate = os.date(timeFormat, record.create_time);
+		local unbanDate = os.date(timeFormat, record.create_time + record.length * 60);
+		
+		local ret = string.format(message, record.id, record.name, record.reason, bannedDate, unbanDate)
+		
+		return false, ret
+	end	
+	return true;
+end);
