@@ -20,56 +20,52 @@ cmd:addParam 'players' { type = 'player', 'multi' }
 ----------------------------------------------------------------
 -- Spectate                                                   --
 ----------------------------------------------------------------
-local specPlayers = {};
-local function adminSpectatePlayer(admin, targ)
-	admin.PreSpecPos = admin:GetPos();
-	specPlayers[admin] = targ;
-	
-	admin:StripWeapons();
-	admin:Flashlight(false);
-	admin:Spectate(5);
-	admin:SpectateEntity(t);
-	admin.Spec = true;
-end
-local function adminUnspectate(admin)
-	admin:UnSpectate();
-	admin:Spawn();
-	admin:SetPos(admin.PreSpecPos);
-	admin.PreSpecPos = nil;
-	admin.Spec = nil;
-end
-local cmd = oc.command( 'management', 'spectate', function( pl, args )
-	if !pl:Alive() then
-		oc.notify(pl, oc.cfg.color_error, 'Please respawn before attempting to spectate.');
-		return
+local specPlayers = {}
+local cmd = oc.command( 'management', 'spectate', function(pl, args)
+ 	if !pl:Alive() then
+ 		oc.notify(pl, oc.cfg.color_error, 'Please respawn before attempting to spectate.')
+ 		return
+ 	end
+	if !oc.p(pl).Spec then
+		oc.p(pl).PreSpecPos = pl:GetPos()
+		specPlayers[pl] = args.player
+
+		pl:StripWeapons()
+		pl:Flashlight(false)
+		pl:Spectate(5)
+		pl:SpectateEntity(args.player)
+
+		oc.p(pl).Spec = true
 	end
-	if admin.Spec then
-		adminUnspectate(pl);
-	end
-	
-	adminSpectatePlayer(pl, args.player);
-end);
-cmd:addFlag 'AdminMode'
+end)
 cmd:addParam 'player' { type = 'player' }
+cmd:addFlag 'AdminMode'
 
-local cmd = oc.command( 'management', 'unspectate', function( pl, args )
-	if pl.Spec then
-		adminUnspectate(pl);
-	else
-		oc.notify(pl, oc.cfg.color_error, 'You\'re not spectating anyone!');
-	end
-end);
+local cmd = oc.command( 'management', 'unspectate', function(pl, args)
+ 	if oc.p(pl).Spec then
+		pl:UnSpectate()
+		pl:Spawn()
+		pl:SetPos(oc.p(pl).PreSpecPos)
 
-oc.hook.Add('PlayerDisconnected', function(pl)
-	for admin, target in pairs(specPlayers)do
-		if admin == pl or target == pl then
-			specPlayers[admin] = nil;
-			if IsValid(admin) then
-				adminUnspectate(admin);
-			end
+		oc.p(pl).PreSpecPos = nil
+		oc.p(pl).Spec = nil
+ 	else
+ 		oc.notify(pl, oc.cfg.color_error, 'You\'re not spectating anyone!')
+ 	end
+end)
+
+cmd:addFlag 'AdminMode'
+ 
+hook.Add("Think", "oc.spectate.Think", function() // oc.hook.Add doesnt clal this for some reason
+	for k, v in pairs(specPlayers) do
+		if (!k:IsValid() or !v:IsValid() or !oc.p(k).Spec) then
+			specPlayers[k] = nil;
+ 		end
+ 		if oc.p(k).PreSpecPos then
+			k:SetPos(v:EyePos());
 		end
-	end
-end);
+ 	end
+end)
 
 ----------------------------------------------------------------
 -- Slay                                                       --
@@ -110,6 +106,13 @@ local function ragdollPlayer( victim )
 end
 
 local cmd = oc.command( 'management', 'slay', function( pl, args )
+	if not oc.p(pl).NextSlay or oc.p(pl).NextSlay < CurTime() then
+		oc.p(pl).NextSlay = CurTime() + 2
+	elseif oc.p(pl).NextSlay > CurTime() then
+		oc.notify(pl, oc.cfg.color_error, 'Please wait ' .. math.ceil(oc.p(pl).NextSlay - CurTime()) .. ' seconds to do this again!' );
+		return
+	end
+
 	-- disolver
 	local targname = "dissolveme"..tostring({});
 	local drift_dir = Vector(0,0,10); -- make em float up
@@ -147,27 +150,26 @@ cmd:addParam 'players' { type = 'player', 'multi' }
 ----------------------------------------------------------------
 local cmd = oc.command( 'management', 'mutevoice', function( pl, args )
 	oc.ForEach(args.players, function(t)
-		t.VoiceMuted = true;	
+		oc.p(t).VoiceMuted = true;	
 	end);
 	
-	oc.notify_fancy( player.GetAll(), '#P muted #P', pl, players_muted);
+	oc.notify_fancy( player.GetAll(), '#P muted #P', pl, args.players);
 end)
-cmd:addFlag 'AdminMode'
 cmd:addParam 'players' { type = 'player', 'multi' }
+cmd:addFlag 'AdminMode';
 
 local cmd = oc.command( 'management', 'unmutevoice', function( pl, args )
 	oc.ForEach(args.players, function(t)
-		t.VoiceMuted = nil;
+		oc.p(t).VoiceMuted = nil;
 	end);
 	
-	oc.notify_fancy( player.GetAll(), '#P muted #P', pl, players_muted);
+	oc.notify_fancy( player.GetAll(), '#P unmuted #P', pl, args.players);
 end)
-cmd:addFlag 'AdminMode'
 cmd:addParam 'players' { type = 'player', 'multi' }
+cmd:addFlag 'AdminMode';
 
-
-hook.Add( "PlayerCanHearPlayersVoice", "oc.PlayerCanHearPlayersVoice.MuteVoice", function( listener, talker )
-	if talker.VoiceMuted then return false end
+oc.hook.Add("PlayerCanHearPlayersVoice", function( listener, talker )
+	if oc.p(talker).VoiceMuted then return false end
 end)
 
 ----------------------------------------------------------------
@@ -175,44 +177,32 @@ end)
 ----------------------------------------------------------------
 local cmd = oc.command( 'management', 'mutechat', function( pl, args )
 	oc.ForEach(args.players, function(t)
-		t.ChatMuted = true;
+		oc.p(t).ChatMuted = true;
 	end);
 	oc.notify_fancy(player.GetAll(), '#P chat muted #P', pl, args.players);
 end)
+cmd:addParam 'players' { type = 'player', 'multi' }
+cmd:addFlag 'AdminMode';
 
 local cmd = oc.command( 'management', 'unmutechat', function( pl, args )
 	oc.ForEach(args.players, function(t)
-		t.ChatMuted = true;
+		oc.p(t).ChatMuted = nil;
 	end);
-	oc.notify_fancy(player.GetAll(), '#P chat muted #P', pl, args.players);
+	oc.notify_fancy(player.GetAll(), '#P chat unmuted #P', pl, args.players);
 end)
-
-local cmd = oc.command( 'management', 'mutechat', function( pl, args )
-	oc.ForEach( args.players, function( t )
-		if !t.ChatMuted then
-			t.ChatMuted = true;
-			oc.notify_fancy( player.GetAll(), '#P muted #Ps chat', pl, args.players );
-		else
-			t.ChatMuted = nil;
-			oc.notify_fancy( player.GetAll(), '#P unmuted #Ps chat', pl, args.players );
-		end
-	end);
-end)
-
-
-cmd:addFlag 'AdminMode';
 cmd:addParam 'players' { type = 'player', 'multi' }
+cmd:addFlag 'AdminMode';
 
-hook.Add( "PlayerSay", "oc.PlayerSay.MuteChat", function( pl )
-	if pl.ChatMuted then return "" end
+oc.hook.Add("PlayerSay", function( pl )
+	if oc.p(pl).ChatMuted then return "" end
 end)
 
 ----------------------------------------------------------------
 -- Kick                                                       --
 ----------------------------------------------------------------
 local cmd = oc.command( 'management', 'kick', function( pl, args )
-	args.player:Kick( args.reason );
 	oc.notify_fancy( player.GetAll(), '#P kicked #P for #S', pl, args.player, args.reason );
+	args.player:Kick( args.reason );
 end)
 cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'reason' { type = 'string', 'fill_line' }
@@ -235,7 +225,7 @@ local cmd = oc.command( 'management', 'ban', function( pl, args )
 end)
 cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'len' { type = 'time' }
-cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
+cmd:addParam 'reason' { type = 'string', 'fill_line' }
 
 local cmd = oc.command( 'managment', 'timetest', function(pl, args)
 	oc.notify_fancy( player.GetAll(), '#T', args.time);
@@ -255,7 +245,7 @@ local cmd = oc.command( 'management', 'banid', function( pl, args )
 end)
 cmd:addParam 'steamid' { type = 'string' }
 cmd:addParam 'len' { type = 'time' }
-cmd:addParam 'reason' { type = 'string', default = '<no reason>', 'fill_line' }
+cmd:addParam 'reason' { type = 'string', 'fill_line' }
 
 
 local cmd = oc.command( 'management', 'unban', function( pl, args )
@@ -269,4 +259,4 @@ local cmd = oc.command( 'management', 'unban', function( pl, args )
 	
 end)
 cmd:addParam 'steamid' { type = 'string' }
-cmd:addParam 'reason' { type = 'string', default = 'none', 'fill_line' }
+cmd:addParam 'reason' { type = 'string', 'fill_line' }
