@@ -106,13 +106,14 @@ local function ragdollPlayer( victim )
 end
 
 local cmd = oc.command( 'management', 'slay', function( pl, args )
-	if not oc.p(pl).NextSlay or oc.p(pl).NextSlay < CurTime() then
-		oc.p(pl).NextSlay = CurTime() + 2
-	elseif oc.p(pl).NextSlay > CurTime() then
-		oc.notify(pl, oc.cfg.color_error, 'Please wait ' .. math.ceil(oc.p(pl).NextSlay - CurTime()) .. ' seconds to do this again!' );
-		return
+	if IsValid(pl) then
+		if not oc.p(pl).NextSlay or oc.p(pl).NextSlay < CurTime() then
+			oc.p(pl).NextSlay = CurTime() + 2
+		elseif oc.p(pl).NextSlay > CurTime() then
+			oc.notify(pl, oc.cfg.color_error, 'Please wait ' .. math.ceil(oc.p(pl).NextSlay - CurTime()) .. ' seconds to do this again!' );
+			return
+		end
 	end
-
 	-- disolver
 	local targname = "dissolveme"..tostring({});
 	local drift_dir = Vector(0,0,10); -- make em float up
