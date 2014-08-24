@@ -71,6 +71,8 @@ oc.include_sh 'lib/hook_sh.lua' 'LIB: hooks';
 print();oc.LoadMsg( '\nUTILS\n' );
 oc.include_sh 'util/stringutil.lua' 'UTIL: string util';
 oc.include_sv 'util/data_sv.lua' 'UTIL: data api' ;
+oc.include_sv 'util/server_vars_sv.lua' 'UTIL: settings api' ;
+oc.include_cl 'util/server_vars_cl.lua' 'UTIL: settings api' ;
 oc.include_sh 'util/feedback_sh.lua' 'UTIL: feedback';
 oc.include_sh 'util/binary_sh.lua' 'UTIL: binary';
 oc.include_sh 'util/obj_perms_sh.lua' 'UTIL: perms';

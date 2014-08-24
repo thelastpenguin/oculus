@@ -55,6 +55,13 @@ CREATE TABLE IF NOT EXISTS oc_user_vars (
 	UNIQUE(`sv_id`, `u_id`)
 ) ENGINE=MyISAM;
 
+# SERVER VARS
+CREATE TABLE IF NOT EXISTS oc_server_vars (
+	`sv_id` INT UNSIGNED NOT NULL,
+	`data` TEXT NOT NULL,
+	UNIQUE(`sv_id`)
+) ENGINE=MyISAM;
+
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (0,0,'user',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (128,20,'admin',0);
 REPLACE INTO `oc_groups` (g_inherits,g_immunity,group_name,color) VALUES (129,50,'superadmin',0);

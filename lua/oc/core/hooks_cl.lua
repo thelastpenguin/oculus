@@ -7,3 +7,9 @@ hook.Add('OnEntityCreated', 'oc.OnEntityCreated', function(ent)
 	oc.hook.Call('OnEntityCreated', ent);
 end);
 oc.hook.Add('OnEntityCreated', oc.HookPluginField('OnEntityCreated'));
+
+hook.Add('PlayerInitialSpawn', 'oc.PlayerInitialSpawn', function(pl)
+	oc.hook.Call('PlayerInitialSpawn', pl);
+end);
+oc.hook.Add('PlayerInitialSpawn', oc.HookPluginField('PlayerInitialSpawn'));
+
