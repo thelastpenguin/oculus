@@ -2,7 +2,6 @@ local oc = oc;
 local string , table , math , pairs , ipairs = string , table , math , pairs , ipairs ;
 local isfunction , istable , type , IsValid = isfunction , istable , type , IsValid ;
 
-
 oc.parser = {};
 
 local compiler_mt = {};
@@ -264,7 +263,6 @@ type_player:addFancyFormat('P', function(arg)
 			end
 		end
 	end
-	local start = os.clock();
 	if istable(arg) and arg[1] then
 		if #arg == #player.GetAll() then
 			return oc.cfg.color_everyone, 'everyone';

@@ -40,7 +40,8 @@ function oc.data.init()
 	oc.LoadMsg( 2, 'server group id: '..(svgid or 'none'));
 	
 	data._svid = svid;
-	data.svid = svgid or svid;
+	if svgid then svid = svgid end
+	data.svid = svid
 	
 	db:query_sync("UPDATE oc_user_perms SET perm=expires_perm, expires_perm = NULL, expires = NULL WHERE expires<?", {os.time()});
 	

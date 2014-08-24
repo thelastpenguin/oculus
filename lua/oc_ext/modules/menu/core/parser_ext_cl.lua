@@ -1,5 +1,6 @@
 local function panelAutocomplete( optGenerator, updateResult )
 	local panel = vgui.Create('DTextEntry');
+	panel:SetEnterAllowed(true);
 	local list;
 	function panel:OnGetFocus()
 		if ValidPanel(list) then list:Remove() end
@@ -13,6 +14,10 @@ local function panelAutocomplete( optGenerator, updateResult )
 		end
 		
 		list = vgui.Create('DPanel', panel:GetParent());
+		function list:Paint(w, h)
+			surface.SetDrawColor(220,220,220,220);
+			surface.DrawRect(0,0,w,h);
+		end
 		for k,v in pairs(opts)do
 			v:SetParent(list);
 		end
@@ -40,9 +45,12 @@ local function panelAutocomplete( optGenerator, updateResult )
 		
 	end
 	function panel:OnLoseFocus()
+		updateResult(self:GetValue());
+		if not ValidPanel(lest) then return end
 		list:Remove();
 	end
 	function panel:OnTextChanged()
+		if not ValidPanel(lest) then return end
 		local text = self:GetValue():lower();
 		for k,v in pairs(list:GetChildren())do
 			v:SetVisible(v.string:lower():find(text, 1, false));
@@ -50,14 +58,14 @@ local function panelAutocomplete( optGenerator, updateResult )
 		list:InvalidateLayout();
 	end
 	function panel:OnKeyCodeTyped(code)
+		if not ValidPanel(lest) then return end
 		if code == KEY_TAB then
 			local lcldrn = list:GetChildren();
 			if lcldrn[1] then
 				lcldrn[1].OnMousePressed(lcldrn[1]);
 			end
 		end
-	end
-	
+	end	
 	return panel;
 end
 
@@ -169,33 +177,43 @@ if type_time then
 			lbl:Dock(LEFT);
 		end
 		
+		local pw, pd, ph, pm;
+		local function calcValue()
+			local pwVal = tonumber(pw:GetValue());
+			local pdVal = tonumber(pd:GetValue());
+			local phVal = tonumber(ph:GetValue());
+			local pmVal = tonumber(pm:GetValue());
+			
+			local time = (((pwVal*7+pdVal)*24+phVal)*60+pmVal)
+			updateValue(time..'m');
+		end
+		
+		local function setupWang(p)
+			p:Dock(LEFT);
+			p:SetDecimals(0);
+			p:SetWide(30);
+			p.OnValueChanged = calcValue;
+		end
+		
 		capt('W');
-		local pw = vgui.Create('DNumberWang', panel);
-		pw:Dock(LEFT);
-		pw:SetDecimals(0);
-		pw:SetWide(30);
+		pw = vgui.Create('DNumberWang', panel);
 		pw:SetMinMax(0, 10000);
+		setupWang(pw);
 		
 		capt('D');
-		local pd = vgui.Create('DNumberWang', panel);
-		pd:Dock(LEFT);
-		pd:SetDecimals(0);
-		pd:SetWide(30);
+		pd = vgui.Create('DNumberWang', panel);
 		pd:SetMinMax(0, 7);
+		setupWang(pd);
 		
 		capt('H');
-		local ph = vgui.Create('DNumberWang', panel);
-		ph:Dock(LEFT);
-		ph:SetDecimals(0);
-		ph:SetWide(30);
+		ph = vgui.Create('DNumberWang', panel);
 		ph:SetMinMax(0, 24);
+		setupWang(ph);
 		
 		capt('M');
-		local pm = vgui.Create('DNumberWang', panel);
-		pm:Dock(LEFT);
-		pm:SetDecimals(0);
-		pm:SetWide(30);
+		pm = vgui.Create('DNumberWang', panel);
 		pm:SetMinMax(0, 60);
+		setupWang(pm);
 		
 		return panel;
 	end);

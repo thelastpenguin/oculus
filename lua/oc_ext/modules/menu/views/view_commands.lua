@@ -76,7 +76,7 @@ function view_cmds:DisplayCommand(cmd)
 	title:SetFont('oc_menu_14');
 	title:SetColor(color_black);
 	title:SizeToContents();
-	title:DockMargin(5,5,5,5);
+	title:DockMargin(5,15,5,5);
 	title:Dock(TOP);
 	
 	local container = makeScrollPanel(self.body);
@@ -86,11 +86,12 @@ function view_cmds:DisplayCommand(cmd)
 	local results = {};
 	for _, param in pairs(cmd.params)do
 		local type_meta = oc.parser.param_types[param.type];
-		
+
 		local lbl = Label(param.pid, container);
 		lbl:SetTextColor(color_black)
 		lbl:SetFont('oc_menu_8');
 		lbl:SizeToContents();
+		lbl.padTop = 10;
 		
 		if param.optional then
 			lbl:SetTextColor(Color(155,155,155));
@@ -100,7 +101,11 @@ function view_cmds:DisplayCommand(cmd)
 		panels[#panels+1] = lbl;
 		
 		local panel = type_meta:genVGUIPanel(param, container, function(res)
-			results[param.pid] = res;
+			if res:len() == 0 then
+				results[param.pid] = nil;
+			else
+				results[param.pid] = res;
+			end
 			dprint('updated value for param '..param.pid..' to '..tostring(res));
 		end);
 		panels[#panels+1] = panel;
@@ -112,6 +117,7 @@ function view_cmds:DisplayCommand(cmd)
 		
 		local w, h = self.body:GetWide(), 0;
 		for k,v in pairs(panels)do
+			if v.padTop then h = h + v.padTop end
 			v:SetPos(4, h)
 			v:SetWide(w-8);
 			h = h + v:GetTall();

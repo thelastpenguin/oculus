@@ -288,3 +288,15 @@ oc.hook.Add('PlayerCanRunCommand', function(pl, meta)
 		return 'You must enter admin mode to use this command!'
 	end
 end);
+
+
+
+/* ======================================================================
+	 	COMMAND EXECUTION
+	 ====================================================================== */
+if CLIENT then
+	function oc.netRunCommand( cmd, args )
+		net.WriteString( cmd );
+		net.WriteTable(args);
+	end
+end

@@ -125,3 +125,4 @@ hook.Add('PhysgunDrop', 'oc.PhysgunDrop.PlayerPhysgun', function( pl, ent )
 		ent:SetMoveType(MOVETYPE_WALK) 
 	end
 end)
+

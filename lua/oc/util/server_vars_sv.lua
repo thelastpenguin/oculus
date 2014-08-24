@@ -4,23 +4,24 @@ oc.serverVars = oc.serverVars or {}
 
 local db = oc._db
 
-local function saveServerVars()
-	local vars = pon.encode(oc.serverVars)
-	db:query('REPLACE INTO oc_server_vars(sv_id, data) VALUES("' .. oc.data._svid .. '", "' .. vars .. '");')
-
+local function saveServerVars(done)
 	net.Start('_loadServerVars')
 		net.WriteString(pon.encode(oc.serverVars))
 	net.Broadcast()
+
+	local vars = pon.encode(oc.serverVars)
+	return db:query_ex('REPLACE INTO oc_server_vars(sv_id, data)VALUES(?,\'?\')', {oc.data._svid, vars}, done);
 end
 
-local encodedVars
+local encodedVars = '{}'; // an empty pON table
 local function loadServerVars()
-	db:query('SELECT * FROM oc_server_vars WHERE sv_id = "' .. oc.data._svid .. '";', function(data)
+	return db:query('SELECT data FROM oc_server_vars WHERE sv_id = "' .. oc.data._svid .. '";', function(data)
+		if not data[1] then return end
 		oc.serverVars = pon.decode(data[1].data)
 		encodedVars = data[1].data
 	end)
 end
-loadServerVars()
+loadServerVars():wait();
 
 function oc.setServerVar(var, val)
 	oc.serverVars[var] = val
