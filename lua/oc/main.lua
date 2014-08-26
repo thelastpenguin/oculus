@@ -2,11 +2,13 @@ oc._include_sh '_config_sh.lua' ;
 oc._include_sh 'lib/functionutil.lua' ;
 require 'xfn';
 
+
 -- FORMATTED LOADING MESSAGE
 do
 	local print, string, table, isnumber = print, string, table, isnumber ;
 	local br = ''; for i = 1, 80 + 4 do br = br .. '=' end
 	local brd = '= '; for i = 1, 80 do brd = brd .. '-' end; brd = brd..' ='
+
 	function oc.LoadMsg( depth, ... )
 		local arg ;
 		if isnumber( depth ) then
@@ -48,6 +50,7 @@ end
 oc.include_sh = wrapper( oc._include_sh, function() return true end );
 oc.include_cl = wrapper( oc._include_cl, function() return CLIENT end );
 oc.include_sv = wrapper( oc._include_sv, function() return SERVER end );
+
 
 --
 -- LOAD FILES BELOW THIS LINE.
@@ -98,3 +101,4 @@ oc.include_cl 'core/hooks_cl.lua' 'client hooks';
 
 
 oc.hook.Call('loaded');
+

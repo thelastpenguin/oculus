@@ -219,19 +219,13 @@ local cmd = oc.command( 'management', 'ban', function( pl, args )
 	end
 	
 	oc.sb.banPlayer( pl, args.player, math.floor(args.len/60), args.reason, function(data, err)
-		args.player:Kick('Banned: '..args.reason);
+		oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
 	end);
-	
-	oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
+	args.player:Kick('Banned: '..args.reason);
 end)
 cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'len' { type = 'time' }
 cmd:addParam 'reason' { type = 'string', 'fill_line' }
-
-local cmd = oc.command( 'managment', 'timetest', function(pl, args)
-	oc.notify_fancy( player.GetAll(), '#T', args.time);
-end);
-cmd:addParam 'time' { type = 'time' }
 
 local cmd = oc.command( 'management', 'banid', function( pl, args )
 	local record = oc.sb.checkSteamID(args.steamid);
@@ -244,7 +238,7 @@ local cmd = oc.command( 'management', 'banid', function( pl, args )
 	
 	oc.notify_fancy( player.GetAll(), '#P banned #S for #T reason #S', pl, args.steamid, args.len, args.reason );
 end)
-cmd:addParam 'steamid' { type = 'string' }
+cmd:addParam 'steamid' { type = 'steamid' }
 cmd:addParam 'len' { type = 'time' }
 cmd:addParam 'reason' { type = 'string', 'fill_line' }
 

@@ -54,7 +54,8 @@ view_cmds:setUpdater(function(self, panel, done)
 		end
 	end
 	
-	for k,v in pairs(oc.commands)do
+	local copied = {};
+	for k,v in SortedPairsByMemberValue(oc.commands, 'command')do
 		if not v:playerCanUse(LocalPlayer()) then continue end
 		
 		local row = vgui.Create('oc_menu-cmd_btn', getCategory(v.category));
@@ -84,7 +85,7 @@ function view_cmds:DisplayCommand(cmd)
 	
 	local panels = {};
 	local results = {};
-	for _, param in pairs(cmd.params)do
+	for paramIndex, param in pairs(cmd.params)do
 		local type_meta = oc.parser.param_types[param.type];
 
 		local lbl = Label(param.pid, container);
@@ -110,6 +111,33 @@ function view_cmds:DisplayCommand(cmd)
 		end);
 		panels[#panels+1] = panel;
 	end
+	
+	
+	local runCommand = vgui.Create('oc_button', self.body);
+	runCommand:SetFont('oc_menu_8');
+	runCommand:SetText('RUN');
+	runCommand:Dock(BOTTOM);
+	runCommand:DockMargin(5,5,5,5);
+	function runCommand:Paint(w,h)
+		if self:IsHovered() then
+			surface.SetDrawColor(155,200,155,200);
+		else
+			surface.SetDrawColor(155,155,180,200);
+		end
+		surface.DrawRect(0,0,w,h);
+	end
+	function runCommand:DoClick()
+		local args = {};
+		for ind, param in pairs(cmd.params)do
+			if results[param.pid] then
+				args[#args+1] = results[param.pid];
+			end
+		end
+		
+		dprint('RUNNING COMMAND: '..cmd.command);
+		oc.netRunCommand(cmd.command, args)
+	end
+	
 	
 	local oldLayout = container.PerformLayout;
 	function container.PerformLayout()

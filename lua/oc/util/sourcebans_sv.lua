@@ -9,10 +9,10 @@ local queries = {
 	SELECT_ADMIN_BY_STEAMID = 'SELECT id FROM '..prefix..'admins WHERE identity = \'?\'',
 	INSERT_ADMIN = 'INSERT INTO '..prefix..'admins (name, identity, create_time) VALUES (\'?\',\'?\', ?)',
 	UPDATE_ADMIN = 'UPDATE '..prefix..'admins SET name = \'?\' WHERE identity = \'?\'',
-	INSERT_BAN_BY_STEAMID = 'INSERT INTO '..prefix..'bans (admin_id, admin_ip, steam, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', ?, ?)',
-	INSERT_BAN_BY_STEAMID_IP = 'INSERT INTO '..prefix..'bans (admin_id, admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
-	INSERT_BAN_BY_STEAMID_CONSOLE = 'INSERT INTO '..prefix..'bans (admin_ip, steam, name, reason, create_time, length) VALUES (\'?\', \'?\', \'?\', \'?\', ?, ?)',
-	INSERT_BAN_BY_STEAMID_CONSOLE_IP = 'INSERT INTO '..prefix..'bans (admin_ip, steam, ip, name, reason, create_time, length) VALUES (\'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
+	INSERT_BAN_BY_STEAMID = 'INSERT INTO '..prefix..'bans (server_id,admin_id, admin_ip, steam, name, reason, create_time, length) VALUES (?, ?, \'?\', \'?\', \'?\', \'?\', ?, ?)',
+	INSERT_BAN_BY_STEAMID_IP = 'INSERT INTO '..prefix..'bans (server_id,admin_id, admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, ?, \'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
+	INSERT_BAN_BY_STEAMID_CONSOLE = 'INSERT INTO '..prefix..'bans (server_id,admin_ip, steam, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', ?, ?)',
+	INSERT_BAN_BY_STEAMID_CONSOLE_IP = 'INSERT INTO '..prefix..'bans (server_id,admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
 	SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (length = 0 OR (create_time + length*60) > ?)',
 	UNBAN_BY_STEAMID_CONSOLE = 'UPDATE '..prefix..'bans SET unban_reason = \'?\', unban_time = ? WHERE id = ?',
 	UNBAN_BY_STEAMID = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
@@ -50,7 +50,7 @@ function oc.sb.playerGetAdminId(pl, done)
 		if err then return done() end
 		if data[1] then
 			done(data[1].id);
-			db:query_ex(queries.UPDATE_ADMIN, {pl:Name(), pl:SteamID()});
+			db:query_ex(queries.UPDATE_ADMIN, {oc.p(pl).uid..'-'..pl:Name(), pl:SteamID()});
 		else
 			db:query_ex(queries.INSERT_ADMIN, {pl:Name(), pl:SteamID(), os.time()}, function(data, err)
 				if err then return done() end
@@ -69,13 +69,13 @@ function oc.sb.banSteamID( admin, player_steamid, player_name, length, reason, d
 			end
 			
 			dprint('admin id is: '..id);
-			db:query_ex(queries.INSERT_BAN_BY_STEAMID, {id, admin:IPAddress(), player_steamid, player_name, reason, os.time(), length}, function()
+			db:query_ex(queries.INSERT_BAN_BY_STEAMID, {oc.sb.svid, id, admin:IPAddress(), player_steamid, player_name, reason, os.time(), length}, function()
 				oc.sb.syncBans(done);	
 			end);
 		end);
 		
 	else
-		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE, {oc.sb.hostip, player_steamid, player_name, reason, os.time(), length}, function()
+		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE, {oc.sb.svid, oc.sb.hostip, player_steamid, player_name, reason, os.time(), length}, function()
 			oc.sb.syncBans(done);	
 		end);
 	end
@@ -89,13 +89,13 @@ function oc.sb.banPlayer( admin, player, length, reason, done )
 			end
 			
 			dprint('admin id is: '..id);
-			db:query_ex(queries.INSERT_BAN_BY_STEAMID_IP, {id, admin:IPAddress(), player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
-				oc.sb.syncBans(done);	
+			db:query_ex(queries.INSERT_BAN_BY_STEAMID_IP, {oc.sb.svid, id, admin:IPAddress(), player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
+				oc.sb.syncBans(done);
 			end);
 		end);
 		
 	else
-		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE_IP, {oc.sb.hostip, player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
+		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE_IP, {oc.sb.svid, oc.sb.hostip, player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
 			oc.sb.syncBans(done);	
 		end);
 	end
@@ -133,7 +133,7 @@ function oc.sb.syncBans(done)
 		end
 		lastsync = os.time();
 		
-		dprint('loaded '..table.Count(oc.sb.bans)..' bans from SourceBans');
+		dprint('loaded '..table.Count(data)..' bans from SourceBans');
 		
 		if done then done() end
 	end);

@@ -166,13 +166,6 @@ end);
 
 function oc.RunChatCommand( pl, text_cmd, text_arg )
 	local meta = oc.commands[ text_cmd ];
-	local perm = meta:getPerm();
-	
-	if not oc.checkPerm( pl, perm ) then
-		oc.notify( pl, oc.cfg.color_error, 'You do not have permission \''..perm..'\'.' );
-		return ;
-	end
-	
 	local args = {oc.parseLine( text_arg )};
 	oc.RunCommand( pl, meta, args );
 end
@@ -182,15 +175,6 @@ end
 	 ====================================================================== */
 function oc.RunConCommand( pl, text_cmd, args )
 	local meta = oc.commands[ text_cmd ];
-	local perm = meta:getPerm( );
-	
-	if not oc.checkPerm( pl, perm ) then
-		oc.notify( pl, oc.cfg.color_error, 'You do not have permission \''..perm..'\'.' );
-		return ;
-	end
-	
-	oc.notify( pl, 'You ran command '..text_cmd );
-	
 	oc.RunCommand( pl, meta, args );
 end
 
@@ -283,6 +267,12 @@ function oc.RunCommand( pl, meta, args )
 	end
 end
 
+
+oc.hook.Add('PlayerCanRunCommand', function(pl, meta)
+	if not meta:playerCanUse(pl) then
+		return 'You don\'t have permission for this command';
+	end
+end);
 oc.hook.Add('PlayerCanRunCommand', function(pl, meta)
 	if meta:hasFlag('AdminMode') and not oc.canAdmin(pl) then
 		return 'You must enter admin mode to use this command!'
@@ -294,9 +284,35 @@ end);
 /* ======================================================================
 	 	COMMAND EXECUTION
 	 ====================================================================== */
-if CLIENT then
+if SERVER then
+	util.AddNetworkString('oc.cmd.runOnServer');
+	net.Receive('oc.cmd.runOnServer', function(_, pl)
+		local cmd = net.ReadString();
+		local args = net.ReadTable();
+		
+		-- make sure the table is safe
+		local newArgs = {};
+		for k,v in ipairs(args)do
+			local tv = type(v);
+			if tv ~= 'string' and tv ~= 'table' then return end
+			newArgs[#newArgs+1] = v;
+		end
+		
+		
+		local cmdMeta = oc.commands[cmd];
+		if not cmdMeta then
+			oc.notify(pl, oc.cfg.color_error, 'Command \''..cmd..'\' not found');
+			return ;
+		end
+		
+		oc.RunCommand(pl, cmdMeta, args);
+		
+	end);
+else
 	function oc.netRunCommand( cmd, args )
-		net.WriteString( cmd );
-		net.WriteTable(args);
+		net.Start('oc.cmd.runOnServer');
+			net.WriteString(cmd);
+			net.WriteTable(args);
+		net.SendToServer();
 	end
 end
