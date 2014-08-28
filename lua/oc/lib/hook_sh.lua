@@ -53,12 +53,17 @@ function oc.hook.DeleteAll( id )
 	hooks[id] = nil;
 end
 function oc.hook.Delete(id, fn)
-	if hooks[id] then
-		for id, _fn in ipairs(hooks[id])do
-			if fn == _fn then
-				table.remove(hooks[id], id);
-				break;
+	local t = type(fn);
+	if t == 'function' then
+		if hooks[id] then
+			for id, _fn in ipairs(hooks[id])do
+				if fn == _fn then
+					table.remove(hooks[id], id);
+					break;
+				end
 			end
 		end
+	elseif t == 'string' then
+		return deleteByName(id, fn);
 	end
 end

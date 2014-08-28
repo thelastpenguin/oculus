@@ -1,27 +1,12 @@
-local function makeScrollPanel(panel)
-	local spanel = vgui.Create('DScrollPanel', panel);
-	function spanel.VBar:Paint( w, h ) end
-	function spanel.VBar.btnGrip:Paint( w, h )
-		surface.SetDrawColor( 100,100,100,255 );
-		surface.DrawRect( 0, 0, w, h );
-	end
-	function spanel.VBar.btnUp:Paint() end
-	function spanel.VBar.btnDown:Paint() end
-	spanel.VBar:SetWide(5);
-	return spanel;
-end
-
-
-local view_cmds = oc.menu.addView('cmds', 'ACTIONS');
+local view_cmds = ocm.menu.addView('cmds', 'ACTIONS');
 view_cmds:setGenerator(function(self, panel, done)
-	local cmdList = makeScrollPanel(panel);
+	local cmdList = vgui.Create('DScrollPanel', panel);
 	
 	-- LIST OF COMMANDS
 	self.cmdList = cmdList;
 	
 	-- BODY
 	local body = vgui.Create('DPanel', panel);
-	function body:Paint() end
 	self.body = body;
 	
 	-- PANEL LAYOUT
@@ -80,39 +65,50 @@ function view_cmds:DisplayCommand(cmd)
 	title:DockMargin(5,15,5,5);
 	title:Dock(TOP);
 	
-	local container = makeScrollPanel(self.body);
+	local container = vgui.Create('DScrollPanel', self.body);
 	container:Dock(FILL);
 	
 	local panels = {};
 	local results = {};
-	for paramIndex, param in pairs(cmd.params)do
-		local type_meta = oc.parser.param_types[param.type];
 
-		local lbl = Label(param.pid, container);
-		lbl:SetTextColor(color_black)
-		lbl:SetFont('oc_menu_8');
+	if #cmd.params ~= 0 then
+
+		for paramIndex, param in pairs(cmd.params)do
+			local type_meta = oc.parser.param_types[param.type];
+
+			local lbl = Label(param.pid, container);
+			lbl:SetTextColor(color_black)
+			lbl:SetFont('oc_menu_8');
+			lbl:SizeToContents();
+			lbl.padTop = 10;
+			
+			if param.optional then
+				lbl:SetTextColor(Color(155,155,155));
+				lbl:SetText('[OPTIONAL] '..lbl:GetText());
+			end
+			
+			panels[#panels+1] = lbl;
+			
+			local panel = type_meta:genVGUIPanel(param, container, function(res)
+				if res:len() == 0 then
+					results[param.pid] = nil;
+				else
+					results[param.pid] = res;
+				end
+				dprint('updated value for param '..param.pid..' to '..tostring(res));
+			end);
+			panels[#panels+1] = panel;
+		end
+	else
+		local lbl = Label('<no arguments>', container);
+		lbl:SetTextColor(Color(200,200,200));
+		lbl:SetFont('oc_menu_12');
 		lbl:SizeToContents();
 		lbl.padTop = 10;
-		
-		if param.optional then
-			lbl:SetTextColor(Color(155,155,155));
-			lbl:SetText('[OPTIONAL] '..lbl:GetText());
-		end
-		
 		panels[#panels+1] = lbl;
-		
-		local panel = type_meta:genVGUIPanel(param, container, function(res)
-			if res:len() == 0 then
-				results[param.pid] = nil;
-			else
-				results[param.pid] = res;
-			end
-			dprint('updated value for param '..param.pid..' to '..tostring(res));
-		end);
-		panels[#panels+1] = panel;
 	end
 	
-	
+	-- run command button
 	local runCommand = vgui.Create('oc_button', self.body);
 	runCommand:SetFont('oc_menu_8');
 	runCommand:SetText('RUN');
@@ -126,6 +122,7 @@ function view_cmds:DisplayCommand(cmd)
 		end
 		surface.DrawRect(0,0,w,h);
 	end
+
 	function runCommand:DoClick()
 		local args = {};
 		for ind, param in pairs(cmd.params)do
@@ -137,7 +134,6 @@ function view_cmds:DisplayCommand(cmd)
 		dprint('RUNNING COMMAND: '..cmd.command);
 		oc.netRunCommand(cmd.command, args)
 	end
-	
 	
 	local oldLayout = container.PerformLayout;
 	function container.PerformLayout()

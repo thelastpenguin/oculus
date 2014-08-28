@@ -75,7 +75,8 @@ if type_player then
 	type_player:setVGUIGenerator(function(param, updateValue)
 		return panelAutocomplete(function()
 			return xfn.map(player.GetAll(), function(v)
-				local btn = vgui.Create('oc_button', opts);
+				local btn = vgui.Create('DButton');
+				btn:SetSkin('oc_menu');
 				btn:SetText(v:Name());
 				function btn.OnMousePressed()
 					panel:SetText(v:Name());
@@ -102,7 +103,8 @@ if type_steamid then
 	type_steamid:setVGUIGenerator(function(param, updateValue)
 		return panelAutocomplete(function()
 			return xfn.map(player.GetAll(), function(v)
-				local btn = vgui.Create('oc_button', opts);
+				local btn = vgui.Create('DButton');
+				btn:SetSkin('oc_menu');
 				btn.value = v:SteamID();
 				btn.string = btn.value .. ' ('..v:Name()..')';
 				
@@ -110,7 +112,7 @@ if type_steamid then
 				function btn.OnMousePressed()
 					panel:SetText(btn.value);
 				end
-				local a = vgui.Create('AvatarImage', btn);
+				local a = vgui.Create('AvatarImage');
 				a:SetPlayer(v, 16);
 				a:SetMouseInputEnabled(false);
 				function btn:PerformLayout()
@@ -129,7 +131,8 @@ if type_string then
 	type_string:setVGUIGenerator(function(param, updateValue)
 		return panelAutocomplete(function()
 			return xfn.map(table.Copy(param.options or {}), function(v)
-				local btn = vgui.Create('oc_button', opts);
+				local btn = vgui.Create('DButton', opts);
+				btn:SetSkin('oc_menu');
 				btn:SetText(v);
 				function btn.OnMousePressed()
 					panel:SetText(v);
@@ -148,7 +151,8 @@ if type_group then
 	type_group:setVGUIGenerator(function(param, updateValue)
 		return panelAutocomplete(function()
 			return xfn.map(table.Copy(oc.groups or {}), function(v)
-				local btn = vgui.Create('oc_button', opts);
+				local btn = vgui.Create('DButton', opts);
+				btn:SetSkin('oc_menu');
 				btn:SetText(v.name .. ' ('..v.gid..')');
 				function btn.OnMousePressed()
 					panel:SetText(v.name);

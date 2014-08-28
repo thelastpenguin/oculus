@@ -1,14 +1,14 @@
 local view_mt = {};
 view_mt.__index = view_mt;
 
-oc.menu.views = {};
-function oc.menu.addView( id, name )
+ocm.menu.views = {};
+function ocm.menu.addView( id, name )
 	local obj = setmetatable({
 		vid = id,	
 		name = name,
 		icon = 'oc/icon64/little17.png',
 	}, view_mt);
-	oc.menu.views[id] = obj;
+	ocm.menu.views[id] = obj;
 	return obj;
 end
 
@@ -46,10 +46,3 @@ function view_mt:canOpen()
 		return true;
 	end
 end
-
-
-oc.include_cl '../views/view_google.lua' 'view: google'
-oc.include_cl '../views/view_commands.lua' 'view: commands'
-oc.include_cl '../views/view_groups.lua' 'view: groups'
-oc.include_cl '../views/view_players.lua' 'view: players'
-oc.include_cl '../views/view_bans.lua' 'view: bans'

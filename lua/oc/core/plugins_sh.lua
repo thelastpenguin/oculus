@@ -1,9 +1,14 @@
+--
+-- REGISTER A PLUGIN TABLE
+--   this mostly unused at the moment
+-- 
 local plugins = {};
 function oc.RegisterPlugin( id, plugin )
 	plugins[id] = plugin;
 	plugin.id = id;
 end
 
+-- allow people to hook into plugin fields
 do
 	local alreadyLinked = {};
 	function oc.HookPluginField( field )
@@ -29,6 +34,16 @@ do
 	end
 end
 
+
+-- calls function func on all files in the directory
+function oc.IncludeDir( fol, func )
+	local files = file.Find( fol .. '*.lua', 'LUA')
+	for _, f in SortedPairs(files, true)do
+		func(fol..f);
+	end
+end
+
+-- load the plugins in the directory
 function oc.LoadPlugins( dir )
 	
 	local p ;
@@ -56,6 +71,7 @@ function oc.LoadPlugins( dir )
 	
 end
 
+-- load modules matching the expected module format from the directory
 function oc.LoadModules( fol )
 	local _, dirs = file.Find(fol..'*', 'LUA');
 	
@@ -85,6 +101,7 @@ end
 oc.LoadPlugins( 'oc_ext/plugins/' );
 
 oc.LoadMsg('\nLOADING MODULES\n');
+ocm = ocm or {};
 oc.LoadModules( 'oc_ext/modules/' );
 
 -- use PostPluginsLoaded to create hooks.

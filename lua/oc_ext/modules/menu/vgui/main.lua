@@ -63,7 +63,7 @@ vgui.Register('oc_main', {
 		
 		self.tabCache = {};
 		
-		self:SetSkin('Default');
+		self:SetSkin('oc_menu');
 	end,
 	
 	Update = function(self)
@@ -144,7 +144,7 @@ vgui.Register('oc_main_nav', {
 	end,
 	
 	Update = function(self)
-		for vid, view in pairs(oc.menu.views)do
+		for vid, view in pairs(ocm.menu.views)do
 			if view:canOpen() then
 				self:AddViewButton(view)
 			elseif self.buttons[view] then

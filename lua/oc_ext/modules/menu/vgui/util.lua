@@ -1,3 +1,6 @@
+--
+-- IMAGE BUTTON PANEL
+-- 
 local PANEL = {};
 function PANEL:Init()
 	self.image = Material('oc/icon64/prohibited1.png');
@@ -33,7 +36,9 @@ end
 
 vgui.Register('oc_ImageButton', PANEL, 'DButton');
 
-
+--
+-- SIMPLE OCULUS BUTTON
+--
 local PANEL = {};
 function PANEL:Init()
 end
@@ -47,5 +52,4 @@ function PANEL:Paint(w, h)
 		surface.DrawRect(0, 0, w, h);
 	end
 end
-
 vgui.Register('oc_button', PANEL, 'DButton');
