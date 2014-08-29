@@ -2,9 +2,15 @@ local oc = oc;
 
 oc.commands = oc.commands or {};
 
-function oc.canAdmin( pl )
-	if not IsValid(pl) then return true end
-	return oc.p(pl).AdminMode or false
+if SERVER then
+	function oc.canAdmin( pl )
+		if not IsValid(pl) then return true end
+		return oc.p(pl).AdminMode or false
+	end
+else
+	function oc.canAdmin(pl)
+		return true;
+	end
 end
 function oc.checkPerm( pl, perm )
 	if not IsValid(pl) then return true end
