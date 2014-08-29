@@ -13,3 +13,6 @@ hook.Add('PlayerInitialSpawn', 'oc.PlayerInitialSpawn', function(pl)
 end);
 oc.hook.Add('PlayerInitialSpawn', oc.HookPluginField('PlayerInitialSpawn'));
 
+hook.Add('PostGamemodeLoaded', 'oc.PostGamemodeLoaded', function()
+	oc.hook.Call('PostGamemodeLoaded');
+end);

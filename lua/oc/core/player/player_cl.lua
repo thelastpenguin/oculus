@@ -27,6 +27,7 @@ function player_mt:applyPermUpdates()
 			return ;
 		end
 	end
+	dprint('applying permission updates');
 		
 	self:loadInheritance();
 end
@@ -37,6 +38,7 @@ function player_mt:loadInheritance()
 	-- load primary usergroup
 	local primaryGroupId = self:getPermNumber('group.primary') or self.player:GetNWInt('pgid');
 	self.primaryGroup = oc.g(primaryGroupId or oc.cfg.group_user) or oc.g(oc.cfg.group_user);
+	dprint('loaded primary group as '..self.primaryGroup.name);
 end
 
 function player_mt:getImmunity() 

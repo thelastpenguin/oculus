@@ -2,8 +2,21 @@ oc.hook = {};
 local hooks = {};
 local hook_names = {};
 
-local function indexByName(id, func, name)
-	hook_names[id..'-'..name] = func;
+local function indexByName(id, name, func)
+	local longName = id..'-'..name;
+	local oldFunc = hook_names[longName];
+	hook_names[longName] = func;
+
+	if oldFunc and hooks[id] then
+		for ind, fn in pairs(hooks[id]) do
+			if fn == oldFunc then
+				return ind;
+			end
+		end
+		return #hooks[id] + 1;
+	else
+		return #hooks[id] + 1;
+	end
 end
 
 local function deleteByName(id, name)
@@ -15,26 +28,32 @@ local function deleteByName(id, name)
 	for ind, val in pairs(hooks[id])do
 		if val == func then
 			dprint('removed function with name: ' .. name .. ' at index ' .. ind);
-			return table.remove(hooks[id], ind);
+			return ind;
 		end
 	end
 end
 
+
 function oc.hook.Add( id, name, func )
-	if func and type(name) == 'string' then
-		deleteByName(id, name);
-		indexByName(id, func, name);
-	elseif type(name) == 'function' then
-		func = name;
-		name = nil;
-	else
-		error('hook.Add expected either name, func or func');
-	end
+
 	if not hooks[id] then 
 		hooks[id] = {};
 	end
-	table.insert(hooks[id], func);
-	return f;
+
+	if func and type(name) == 'string' then
+		local insertIndex = indexByName(id, name, func);
+		hooks[id][insertIndex] = func;
+	elseif type(name) == 'function' then
+		func = name;
+		name = nil;
+		table.insert(hooks[id], func);
+	else
+		error('hook.Add expected either name, func or func');
+	end
+	
+	PrintTable(hooks[id]);
+
+	return func;
 end
 
 function oc.hook.Call( id, ... )
