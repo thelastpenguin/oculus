@@ -21,6 +21,7 @@ local cmd = oc.command('utility', 'motd', function(pl)
 	end
 end)
 cmd:runOnClient(function()
+	if not oc.getServerVar('motd') then return end
 	pTheme.OpenURL('HTML', oc.getServerVar('motd'))
 end)
 
