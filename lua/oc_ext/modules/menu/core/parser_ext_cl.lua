@@ -145,6 +145,18 @@ if type_string then
 	end);
 end
 
+local type_number = oc.parser.param_types['number'];
+if type_number then
+	type_number:setVGUIGenerator(function(param, updateValue)
+		local numberSlider = vgui.Create('DNumSlider');
+		numberSlider:SetText(param.pid);
+		numberSlider:SetDecimals(0);
+		numberSlider.OnValueChanged = function(_, value)
+			updateValue(value);
+		end
+		return numberSlider;
+	end);
+end
 
 local type_group = oc.parser.param_types['group'];
 if type_group then

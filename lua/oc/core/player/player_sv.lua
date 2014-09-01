@@ -326,7 +326,7 @@ function player_offline_mt:setPermNumber(perm, value, isGlobal, done)
 end
 
 
-oc.hook.Add('PlayerInitialSpawn', function(pl)
+oc.hook.Add('PlayerInitialSpawn', 'core.loadPlayer', function(pl)
 	dprint('loading player: '..pl:Name());
 	oc.p(pl);
 	
@@ -340,7 +340,7 @@ oc.hook.Add('PlayerInitialSpawn', function(pl)
 	
 end);
 
-oc.hook.Add('PlayerDisconnected', function(pl)
+oc.hook.Add('PlayerDisconnected', 'core.gcPlayer', function(pl)
 	dprint('unloading player: '..pl:Name());
 	oc.p(pl):saveVars();
 	players[pl] = nil;

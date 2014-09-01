@@ -35,21 +35,3 @@ function PANEL:Paint(w, h)
 end
 
 vgui.Register('oc_ImageButton', PANEL, 'DButton');
-
---
--- SIMPLE OCULUS BUTTON
---
-local PANEL = {};
-function PANEL:Init()
-end
-function PANEL:Paint(w, h)
-	if self:IsHovered() then
-		if input.IsMouseDown(MOUSE_LEFT) then
-			surface.SetDrawColor(0, 0, 100, 120);
-		else
-			surface.SetDrawColor(0, 0, 100, 80);
-		end
-		surface.DrawRect(0, 0, w, h);
-	end
-end
-vgui.Register('oc_button', PANEL, 'DButton');

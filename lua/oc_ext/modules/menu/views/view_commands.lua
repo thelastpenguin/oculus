@@ -109,7 +109,7 @@ function view_cmds:DisplayCommand(cmd)
 	end
 	
 	-- run command button
-	local runCommand = vgui.Create('oc_button', self.body);
+	local runCommand = vgui.Create('DButton', self.body);
 	runCommand:SetFont('oc_menu_8');
 	runCommand:SetText('RUN');
 	runCommand:Dock(BOTTOM);

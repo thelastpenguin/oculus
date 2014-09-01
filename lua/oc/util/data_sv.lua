@@ -5,7 +5,7 @@ local data = oc.data;
 
 -- ESTABLISH CONNECTION
 if not oc._db then
-	oc._db = pmysql.newdb( "lastpenguin.com", "penguinwebhost", "pE2SGHXU3eST9qa", "penguinwebhost_oculus", 3306 );
+	oc._db = pmysql.newdb( "mysql.lastpenguin.com", "oculus", "8HNC75LCWwk4GNW", "oculus", 3306 );
 end
 
 
@@ -130,7 +130,7 @@ function oc.data.groupCreate(g_id, groupname, callback )
 	end);
 end
 function oc.data.groupUpdate( g_id, g_inherits, g_immunity, group_name, color, callback)
-	return db:query_ex('REPLACE INTO oc_groups (g_inherits,g_immunity,group_name,color)VALUES(?,?,\'?\',?)', {
+	return db:query_ex('REPLACE INTO oc_groups (g_id,g_inherits,g_immunity,group_name,color)VALUES(?,?,?,\'?\',?)', {
 		g_id, g_inherits, g_immunity, group_name, oc.bit.encodeColor(color)
 	}, callback);
 end

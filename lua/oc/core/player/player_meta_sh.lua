@@ -5,7 +5,7 @@ local Player = FindMetaTable('Player');
 oc.perm.register('meta.isSuperAdmin');
 oc.perm.register('meta.isAdmin');
 
-oc.hook.Add('PostGamemodeLoaded', function()
+oc.hook.Add('PostGamemodeLoaded', 'player_meta_sh', function()
 	function Player:IsSuperAdmin()
 		return oc.canAdmin(self) and ocp(self):getPerm('meta.isSuperAdmin') and true or false;
 	end

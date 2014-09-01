@@ -68,24 +68,17 @@ function oc.group.loadId(g_id)
 	
 end
 
-function group_mt:setColor(col, callback)
+function group_mt:setColor(col)
 	self.color = col;
-	self:sync();
-	return self:updateDb(callback);
 end
-function group_mt:setImmunity(immun, callback)
+function group_mt:setImmunity(immun)
 	self.immunity = immun;
-	self:sync();
-	return self:updateDb(callback);
 end
-function group_mt:setName(name, callback)
+function group_mt:setName(name)
 	self.name = name;
-	self:sync();
-	return self:updateDb(callback);
 end
-function group_mt:setInherits(group, callback)
+function group_mt:setInherits(group)
 	self.inherits = group
-	return self:updateDb(callback);
 end
 
 function group_mt:updateDb(callback)
@@ -177,7 +170,7 @@ end
 oc.group.sync();
 
 
-oc.hook.Add('PlayerInitialSpawn', function(pl)
+oc.hook.Add('PlayerInitialSpawn', 'core.loadGroup', function(pl)
 	dprint('player initial spawned');
 	net.waitForPlayer(pl, function()
 		dprint('syncing groups to player ' .. pl:Name());

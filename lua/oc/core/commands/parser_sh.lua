@@ -312,6 +312,36 @@ type_number:addFancyFormat('N', function(arg)
 end);
 
 --
+-- ARGUMENT TYPE - COLOR
+--
+local type_color = oc.parser.newParamType('color');
+type_color:addStep(function(arg, opts, compiler)
+	if not istable(arg) then
+		arg = string.Explode(',', arg);
+	end
+
+	if not istable(arg) or #arg > 4 then
+		return false, 'expected array [r, g, b, (optional) a]'
+	end
+	
+	local r = tonumber(arg[1]);
+	local g = tonumber(arg[2]);
+	local b = tonumber(arg[3]);
+	local a = tonumber(arg[4] or '255');
+	print(r, g, b, a);
+
+	if not(r == nil or g == nil or b == nil or a == nil) then
+		if r < 0 or r > 255 or g < 0 or g > 255 or b < 0 or b > 255 or a < 0 or a > 255 then
+			return false, 'expected colors to be between 0-255';
+		else
+			return true, Color(r, g, b, a);
+		end
+	else
+		return false, 'expected numaric color parameters'
+	end
+end);
+
+--
 -- ARGUMENT TYPE - TIME
 --
 local type_time = oc.parser.newParamType('time');

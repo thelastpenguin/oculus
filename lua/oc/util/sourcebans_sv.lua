@@ -82,6 +82,9 @@ function oc.sb.banSteamID( admin, player_steamid, player_name, length, reason, d
 end
 
 function oc.sb.banPlayer( admin, player, length, reason, done )
+	local playerIpAddr = player:IPAddress();
+	local playerSteamID = player:SteamID();
+	local playerName = player:Name();
 	if IsValid(admin) then
 		oc.sb.playerGetAdminId(admin, function(id)
 			if not id then
@@ -89,13 +92,13 @@ function oc.sb.banPlayer( admin, player, length, reason, done )
 			end
 			
 			dprint('admin id is: '..id);
-			db:query_ex(queries.INSERT_BAN_BY_STEAMID_IP, {oc.sb.svid, id, admin:IPAddress(), player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
+			db:query_ex(queries.INSERT_BAN_BY_STEAMID_IP, {oc.sb.svid, id, admin:IPAddress(), playerSteamID, playerIpAddr, playerName, reason, os.time(), length}, function()
 				oc.sb.syncBans(done);
 			end);
 		end);
 		
 	else
-		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE_IP, {oc.sb.svid, oc.sb.hostip, player:SteamID(), player:IPAddress(), player:Name(), reason, os.time(), length}, function()
+		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE_IP, {oc.sb.svid, oc.sb.hostip, playerSteamID, playerIpAddr, playerName, reason, os.time(), length}, function()
 			oc.sb.syncBans(done);	
 		end);
 	end

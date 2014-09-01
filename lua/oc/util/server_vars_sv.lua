@@ -32,7 +32,7 @@ function oc.getServerVar(var)
 	return oc.serverVars[var]
 end
 
-oc.hook.Add('PlayerInitialSpawn', function(pl)
+oc.hook.Add('PlayerInitialSpawn', 'util.serverVars', function(pl)
 	net.waitForPlayer(pl, function()
 		net.Start('_loadServerVars')
 			net.WriteString(encodedVars)

@@ -37,6 +37,29 @@ cmd:setHelp 'deny the group global access to the specified permission'
 cmd:addParam 'group' { type = 'group', help = 'target group' }
 cmd:addParam 'perm' { type = 'string', help = 'permission name', options = oc.autocomplete.perms}
 
+-- group update settings
+local cmd = oc.command( 'permissions', 'groupupdate', function( pl, args )
+	local group = args.group;
+	group:setColor(args.color);
+	group:setImmunity(args.immunity);
+	group:setName(args.name);
+	group:sync();
+	group:updateDb();
+
+	oc.notify_fancy(player.GetAll(), '#P updated group #G to name: #S immunity: #N color: #N, #N, #N',
+		pl, 
+		args.group, 
+		args.name,
+		args.immunity,
+		args.color.r, args.color.g, args.color.b);
+
+end);
+cmd:setHelp 'update the group\'s settings'
+cmd:addParam 'group' { type = 'group' }
+cmd:addParam 'name' { type = 'string' }
+cmd:addParam 'immunity' { type = 'number' }
+cmd:addParam 'color' { type = 'color' }
+
 
 local cmd = oc.command( 'permissions', 'groupinfo', function( pl, args )
 	net.Start('oc.cmd.groupinfo.run');

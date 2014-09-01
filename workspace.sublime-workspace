@@ -8,18 +8,26 @@
 	"buffers":
 	[
 		{
-			"file": "/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/_config_sh.lua",
+			"file": "lua/oc_ext/modules/menu/vgui/util.lua",
 			"settings":
 			{
-				"buffer_size": 762,
-				"line_ending": "Unix"
+				"buffer_size": 808,
+				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "lua/oc_ext/plugins/management.lua",
+			"file": "lua/oc_ext/modules/menu/vgui/main.lua",
 			"settings":
 			{
-				"buffer_size": 8794,
+				"buffer_size": 5731,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "lua/oc_ext/modules/menu/views/view_commands.lua",
+			"settings":
+			{
+				"buffer_size": 4287,
 				"line_ending": "Windows"
 			}
 		}
@@ -27,7 +35,7 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 98.0,
+		"height": 368.0,
 		"selected_items":
 		[
 			[
@@ -108,15 +116,47 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/User/Colorsublime/themes/myEden.tmTheme",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/core/parser_ext_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/plugins_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_google.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_commands.lua",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/redirect.php",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/init_sh.lua",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/.htaccess",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_groups.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/commands/parser_sh.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/core/views_sh.lua",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/.htaccess 2",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/addnew.php",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/sqlite",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/hooks_cl.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/lib/hook_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/util/server_vars_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/commands/commands_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/player/player_cl.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/group/group_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/player/player_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/player/player_meta_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/lua/includes/modules/cleanup.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/lua/includes/modules/draw.lua",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/view.php",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/.htaccess 3",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/vgui_theme_cl.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/vgui/main.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_commands.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/.htaccess",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/thingy.tff",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/2huxQ-javaw.jpg",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/84DYK.html",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/sv_stuffed_printers.lua",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/stuffed_printers_core.lua",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/stuffed_printers_cfg.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/core/parser_ext_cl.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/management.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_bans.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/core/parser_ext_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/vgui/util.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_google.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_players.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/_config_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/plugins_sh.lua",
+		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/User/Colorsublime/themes/myEden.tmTheme",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gmodz_items/base.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/core/inventory/invmenu_cl.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/core/inventory/invmenu_sv.lua",
@@ -138,7 +178,6 @@
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/main.lua",
 		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/data_sv.lua",
 		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/vgui_hud_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/lib/hook_sh.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/groups.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/_config_sh.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/lib/glsocks_sv.lua",
@@ -167,7 +206,6 @@
 		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/ColorHighlighter/ColorHighlighter.py",
 		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/ColorPicker/sublimecp.py",
 		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/Default/Default (Windows).sublime-keymap",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/hooks_cl.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/hooks_sv.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/autorun/p_modules_add.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/dprint.luasrc",
@@ -192,6 +230,13 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"oc.hook.Add",
+			"applyPermUpdates",
+			"loadInheritance",
+			"SKIN:",
+			"opts",
+			"Button",
+			"String",
 			"keyword.",
 			"string",
 			"IsValid( self.Entity",
@@ -229,65 +274,97 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/_config_sh.lua",
+					"file": "lua/oc_ext/modules/menu/vgui/util.lua",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 762,
+						"buffer_size": 808,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								43,
-								43
+								625,
+								625
 							]
 						],
 						"settings":
 						{
 							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
-							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage"
+							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "lua/oc_ext/plugins/management.lua",
-					"semi_transient": false,
+					"file": "lua/oc_ext/modules/menu/vgui/main.lua",
+					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 8794,
+						"buffer_size": 5731,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								6548,
-								6548
+								0,
+								0
 							]
 						],
 						"settings":
 						{
+							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
 							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 3955.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "lua/oc_ext/modules/menu/views/view_commands.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4287,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2694,
+								2694
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
+							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2130.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
@@ -331,7 +408,7 @@
 	"project": "workspace.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 106.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -352,11 +429,11 @@
 	},
 	"select_symbol":
 	{
-		"height": 375.0,
+		"height": 98.0,
 		"selected_items":
 		[
 		],
-		"width": 378.0
+		"width": 360.0
 	},
 	"settings":
 	{

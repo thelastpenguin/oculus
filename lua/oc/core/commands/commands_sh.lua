@@ -142,7 +142,7 @@ end
 /* ======================================================================
 	 	COMMAND PARSING FROM CHAT
 	 ====================================================================== */
-oc.hook.Add( 'PlayerSay', function( pl, text )
+oc.hook.Add( 'PlayerSay', 'core.ChatCommand', function( pl, text )
 	if text:sub( 1, 1 ) == '!' then
 		
 		local cmd = string.match( text, '%a+', 2 );
@@ -274,12 +274,12 @@ function oc.RunCommand( pl, meta, args )
 end
 
 
-oc.hook.Add('PlayerCanRunCommand', function(pl, meta)
+oc.hook.Add('PlayerCanRunCommand', 'core.CheckPerm', function(pl, meta)
 	if not meta:playerCanUse(pl) then
 		return 'You don\'t have permission for this command';
 	end
 end);
-oc.hook.Add('PlayerCanRunCommand', function(pl, meta)
+oc.hook.Add('PlayerCanRunCommand', 'core.AdminMode', function(pl, meta)
 	if meta:hasFlag('AdminMode') and not oc.canAdmin(pl) then
 		return 'You must enter admin mode to use this command!'
 	end
@@ -300,7 +300,7 @@ if SERVER then
 		local newArgs = {};
 		for k,v in ipairs(args)do
 			local tv = type(v);
-			if tv ~= 'string' and tv ~= 'table' then return end
+			if tv ~= 'string' and tv ~= 'table' then v = tostring(v) end
 			newArgs[#newArgs+1] = v;
 		end
 		

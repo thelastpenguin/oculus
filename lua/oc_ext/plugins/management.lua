@@ -220,8 +220,8 @@ local cmd = oc.command( 'management', 'ban', function( pl, args )
 	
 	oc.sb.banPlayer( pl, args.player, math.floor(args.len/60), args.reason, function(data, err)
 		oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
+		game.ConsoleCommand('kickid '..args.player:SteamID()..' "'..args.reason..'"\n');
 	end);
-	args.player:Kick('Banned: '..args.reason);
 end)
 cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'len' { type = 'time' }

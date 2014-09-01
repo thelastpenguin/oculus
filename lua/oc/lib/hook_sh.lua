@@ -51,7 +51,7 @@ function oc.hook.Add( id, name, func )
 		error('hook.Add expected either name, func or func');
 	end
 	
-	PrintTable(hooks[id]);
+	dprint('ADDED HOOK: '..id..' TOTAL: '..#hooks[id]);
 
 	return func;
 end
