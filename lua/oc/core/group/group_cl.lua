@@ -28,6 +28,8 @@ net.Receive('oc.g.syncMeta', function(len)
 	local inherits = net.ReadUInt(32);
 	group.inherits = inherits ~= 0 and oc.g(inherits) or nil;
 	group.name = net.ReadString();
+
+	oc.hook.Call('GroupMetaUpdate', g, isGlobal);
 end);
 
 net.Receive('oc.g.syncPerms', function(len)
@@ -38,11 +40,15 @@ net.Receive('oc.g.syncPerms', function(len)
 	local perms = oc.perm()
 	perms:netRead();
 	
+	local g = oc.g(groupid);
+
 	if isGlobal then
-		oc.g(groupid).globalPerms = perms
+		g.globalPerms = perms
 	else
-		oc.g(groupid).serverPerms = perms;
+		g.serverPerms = perms;
 	end
+	
+	oc.hook.Call('GroupPermUpdate', g, isGlobal);
 end);
 
 local groups = {};
@@ -55,3 +61,13 @@ function oc.g(groupid)
 	end
 	return groups[groupid];
 end
+
+
+// group update event triggered whenever a group is modified
+oc.hook.Add('GroupPermUpdate', function(group)
+	oc.hook.Call('GroupUpdate', group);
+end);
+
+oc.hook.Add('GroupMetaUpdate', function(group)
+	oc.hook.Call('GroupUpdate', group);
+end);

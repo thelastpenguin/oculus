@@ -124,8 +124,8 @@ function oc.data.groupGetById( g_id, callback )
 	return db:query_ex('SELECT * FROM oc_groups WHERE g_id=?', {g_id}, callback);
 end
 
-function oc.data.groupCreate(g_id, groupname, callback )
-	return db:query_ex('REPLACE INTO oc_groups (g_inherits,g_immunity,group_name,color)VALUES(?,?,\'?\',?)',{g_id,groupname,oc.bit.encodeColor(color_white)}, function()
+function oc.data.groupCreate(g_inherits, groupname, callback )
+	return db:query_ex('REPLACE INTO oc_groups (g_inherits,g_immunity,group_name,color)VALUES(?,?,\'?\',?)',{g_inherits,0,groupname,oc.bit.encodeColor(color_white)}, function()
 		callback();
 	end);
 end

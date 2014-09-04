@@ -256,6 +256,7 @@ function player_offline_mt:load(callback)
 	for _, pl in pairs(player.GetAll())do
 		if pl:SteamID() == self.steamid then
 			self.player = pl;
+			self.online = oc.p(pl);
 			break ;
 		end
 	end
@@ -289,7 +290,7 @@ function player_offline_mt:addPerm(perm, isGlobal, done)
 			oc.p(self.player):fetchPerms(isGlobal, done or xfn.noop);
 		elseif done then
 			done();
-		end	
+		end
 	end);
 end
 
@@ -309,6 +310,9 @@ function player_offline_mt:setGroup( group, isGlobal, done )
 		xfn.fn_partial(self.setPermNumber, self, 'group.primary', group, isGlobal or false),
 	}, function()
 		if done then done() end
+		if self.online then
+			self.online:loadInheritance();
+		end
 	end);
 end
 function player_offline_mt:addPermNumber(perm, value, isGlobal, done)

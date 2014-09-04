@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 -- Unwanted                                                   --
 ----------------------------------------------------------------
-local cmd = oc.command( 'utility', 'unwant', function( pl, args )
+local cmd = oc.command( 'utility', 'Unwant', function( pl, args )
 	args.target:unWanted()
 	oc.notify_fancy(player.GetAll(), '#P has unwanted #P', pl, args.target)
 end)

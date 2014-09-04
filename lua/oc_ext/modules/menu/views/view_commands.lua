@@ -158,7 +158,7 @@ vgui.Register('oc_menu-cmd_btn', {
 	SetCommand = function(self, cmd)
 		self.command = cmd;
 		
-		self.lbl = Label(cmd.command, self);
+		self.lbl = Label(cmd.printName, self);
 		self.lbl:SetTextColor(color_black);
 		self.lbl:SetFont('oc_menu_8');
 		self.lbl:SizeToContents();

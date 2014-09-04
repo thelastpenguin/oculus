@@ -38,6 +38,11 @@ function player_mt:loadInheritance()
 	-- load primary usergroup
 	local primaryGroupId = self:getPermNumber('group.primary') or self.player:GetNWInt('pgid');
 	self.primaryGroup = oc.g(primaryGroupId or oc.cfg.group_user) or oc.g(oc.cfg.group_user);
+
+	if not self.primaryGroup or not self.primaryGroup.name then
+		dprint('WARNING: attempted to load inheritance before primaryGroup was ready. this may be safe to ignore.');
+		return ;
+	end
 	dprint('loaded primary group as '..self.primaryGroup.name);
 end
 

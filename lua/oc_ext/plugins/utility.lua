@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 -- Adminmode                                                  --
 ----------------------------------------------------------------
-local cmd = oc.command( 'utility', 'adminmode', function( pl )
+local cmd = oc.command( 'utility', 'admin mode', function( pl )
 	if not oc.p(pl).AdminMode then
 		oc.p(pl).AdminMode = true
 		oc.notify_fancy(player.GetAll(), '#P is now administrating.', pl)
@@ -29,7 +29,7 @@ oc.hook.Add('ServerVarsLoaded', function(pl)
 	pl:ConCommand('oc motd')
 end)
 
-local cmd = oc.command('utility', 'setmotd', function(pl, args)
+local cmd = oc.command('utility', 'set motd', function(pl, args)
 	oc.setServerVar('motd', args.link)
 end)
 cmd:addParam 'link' { type = 'string', 'fill_line' }
@@ -52,7 +52,7 @@ local cmd = oc.command( 'utility', 'sit', function( pl )
 end)
 cmd:addFlag 'AdminMode'
 
-local cmd = oc.command('utility', 'setadminroom', function(pl)
+local cmd = oc.command('utility', 'Set Admin Room', function(pl)
 	oc.setServerVar('adminroom', pl:GetPos())
 end)
 
@@ -80,6 +80,6 @@ cmd:addFlag 'AdminMode'
 -- Relaod Map                                                 --
 ----------------------------------------------------------------
 local cmd = oc.command( 'utility', 'reload', function( pl )
-	RunConsoleCommand( "changelevel", game.GetMap() );
+	RunConsoleCommand("changelevel", game.GetMap());
 end)
 cmd:addFlag 'AdminMode'

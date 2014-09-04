@@ -60,13 +60,13 @@ if CLIENT then
 		local sid = net.ReadString()
 
 		local w, h = ScrW() *.95, ScrH() *.95
-		local fr = pTheme.Create("pFrame")
+		local fr = vgui.Create('DFrame');
 		fr:SetTitle("Screengrab: " ..  sid)
 		fr:SetSize(w, h)
 		fr:MakePopup()
 		fr:Center()
 		
-		local image = pTheme.Create("HTML", fr)
+		local image = vgui.Create("DHTML", fr)
 		image:SetPos(10, 25)
 		image:SetSize(w - 10, h - 30)
 		image:SetHTML([[<img src="data:image/jpeg;base64, ]] .. data .. [[alt="ERROR" height="]] .. h - 50 .. [[" width="]] .. w - 40 .. [["/>]]) // Make it smaller so it doesnt have fugly scrollbars

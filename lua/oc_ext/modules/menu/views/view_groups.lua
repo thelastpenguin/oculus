@@ -9,22 +9,33 @@ local view_groups = ocm.menu.addView('groups', 'GROUPS');
 view_groups:setIcon('oc/icon64/group2.png');
 view_groups:setGenerator(function(self, panel)
 
+	-- UPDATE GROUP DISPLAY
+	function self.UpdateProperties()
+		self.colorPicker:SetColor(self.group.color);
+		self.groupName:SetText(self.group.name);
+		self.immunitySlider:SetValue(self.group.immunity);
+		self.groupPerms:SetGroup(self.group);
+
+		self.inheritanceList:SetValue(self.group.inherits and self.group.inherits.name or '<none>');
+	end
+
+
 	-- GENERAL LAYOUT
 	self.leftColumn = vgui.Create('DPanel', panel);
 	self.leftColumn:SetVisible(false);
 	self.body = vgui.Create('DScrollPanel', panel);
+	self.body:SetVisible(false);
 
 	-- DROPDOWN GROUP LIST
-	local group ;
 	self.groupList = vgui.Create('DComboBox', panel);
 	self.groupList:SetValue("<none>")
 	self.groupList.OnSelect = function( _, index, value, _group )
-		group = _group;
+		self.group = _group;
 
 		self.leftColumn:SetVisible(true);
-		self.colorPicker:SetColor(group.color);
-		self.groupName:SetText(group.name);
-		self.immunitySlider:SetValue(group.immunity);
+		self.body:SetVisible(true);
+
+		self.UpdateProperties();
 	end
 
 	-- GROUP NAME EDITOR
@@ -48,6 +59,18 @@ view_groups:setGenerator(function(self, panel)
 	self.immunitySlider:Dock(TOP);
 	self.immunitySlider.Label:SetColor(color_black);
 
+	-- GROUP INHERITANCE
+	addCaption('GROUP INHERITS:', self.leftColumn);
+	self.inheritanceList = vgui.Create('DComboBox', self.leftColumn);
+	self.inheritanceList:SetValue("<none");
+	self.inheritanceList.OnSelect = function(_, index, value, _group)
+		oc.netRunCommand('groupsetparent', {
+			self.group.name,
+			_group and _group.name or nil
+		})
+	end
+	self.inheritanceList:Dock(TOP);
+
 	self.updateSettings = vgui.Create('DButton', self.leftColumn);
 	self.updateSettings:SetText('SAVE SETTINGS');
 	self.updateSettings:Dock(TOP);
@@ -55,12 +78,28 @@ view_groups:setGenerator(function(self, panel)
 		print('execute command');
 		local col = self.colorPicker:GetColor();
 		oc.netRunCommand('groupupdate', {
-			group.name,
+			self.group.name,
 			self.groupName:GetValue(),
 			self.immunitySlider:GetValue(),
 			col.r..','..col.g..','..col.b,
 		})
 	end
+
+	self.createNew = vgui.Create('DButton', self.leftColumn);
+	self.createNew:SetText('CREATE NEW');
+	self.createNew:Dock(BOTTOM);
+	self.createNew.DoClick = function()
+		Derma_StringRequest('GROUP NAME', 'Enter a name for the new group', 'group'..math.random(1,1000), function(text)
+			oc.netRunCommand('groupcreate', {
+				text,
+				self.group and self.group.name
+			});
+		end);
+	end
+
+
+	self.groupPerms = vgui.Create('oc_menu-group-perms', self.body);
+	self.groupPerms:Dock(FILL);
 
 	function panel.PerformLayout()
 		if not ValidPanel(self.groupList) then return end
@@ -75,29 +114,23 @@ view_groups:setGenerator(function(self, panel)
 		self.body:SetPos(0.3*w, 0);
 		self.body:SetSize(0.7*w, h);
 
-
 		self.colorPicker:SetTall(self.colorPicker:GetWide()*0.5);
 	end
+
 end);
 
 view_groups:setUpdater(function(self, panel)
 	self.groupList:Clear();
+	self.inheritanceList:Clear();
 	for k,v in SortedPairsByMemberValue(oc.groups, 'immunity', true)do
-		self.groupList:AddChoice(v.name, v);
+		self.groupList:AddChoice(v.gid..' - '..v.name, v);
+		self.inheritanceList:AddChoice(v.gid..' - '..v.name, v);
 	end
+	self.inheritanceList:AddChoice('<none>');
 
-	self.body:Clear();
+	if self.group then
+		self.groupList:SetValue(self.group.name);
 
-	local globalPermsList = vgui.Create('DSizeToContents', self.body);
-	local localPermsList = vgui.Create('DSizeToContents', self.body);
-
-	function self.body:PerformLayout()
-		local w, h = self:GetSize();
-		globalPermsList:SetWide(w*0.5);
-		localPermsList:SetWide(w*0.5);
-		localPermsList:SetPos(w*0.5,0);
+		self.UpdateProperties();
 	end
-
-	panel:InvalidateLayout(true);
-	panel:InvalidateChildren(true);
 end);

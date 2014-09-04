@@ -58,7 +58,7 @@ cmd:addFlag 'AdminMode'
  
 hook.Add("Think", "oc.spectate.Think", function() // oc.hook.Add doesnt clal this for some reason
 	for k, v in pairs(specPlayers) do
-		if (!k:IsValid() or !v:IsValid() or !oc.p(k).Spec) then
+		if (!k:IsValid() or !v:IsValid()) then
 			specPlayers[k] = nil;
  		end
  		if oc.p(k).PreSpecPos then
@@ -149,7 +149,7 @@ cmd:addParam 'players' { type = 'player', 'multi' }
 ----------------------------------------------------------------
 -- Mute Voice                                                --
 ----------------------------------------------------------------
-local cmd = oc.command( 'management', 'mutevoice', function( pl, args )
+local cmd = oc.command( 'management', 'mute voice', function( pl, args )
 	oc.ForEach(args.players, function(t)
 		oc.p(t).VoiceMuted = true;	
 	end);
@@ -159,7 +159,7 @@ end)
 cmd:addParam 'players' { type = 'player', 'multi' }
 cmd:addFlag 'AdminMode';
 
-local cmd = oc.command( 'management', 'unmutevoice', function( pl, args )
+local cmd = oc.command( 'management', 'unmute voice', function( pl, args )
 	oc.ForEach(args.players, function(t)
 		oc.p(t).VoiceMuted = nil;
 	end);
@@ -176,7 +176,7 @@ end)
 ----------------------------------------------------------------
 -- Mute Chat                                                  --
 ----------------------------------------------------------------
-local cmd = oc.command( 'management', 'mutechat', function( pl, args )
+local cmd = oc.command( 'management', 'mute chat', function( pl, args )
 	oc.ForEach(args.players, function(t)
 		oc.p(t).ChatMuted = true;
 	end);
@@ -185,7 +185,7 @@ end)
 cmd:addParam 'players' { type = 'player', 'multi' }
 cmd:addFlag 'AdminMode';
 
-local cmd = oc.command( 'management', 'unmutechat', function( pl, args )
+local cmd = oc.command( 'management', 'unmute chat', function( pl, args )
 	oc.ForEach(args.players, function(t)
 		oc.p(t).ChatMuted = nil;
 	end);
@@ -201,7 +201,7 @@ end)
 ----------------------------------------------------------------
 -- Kick                                                       --
 ----------------------------------------------------------------
-local cmd = oc.command( 'management', 'kick', function( pl, args )
+local cmd = oc.command( 'management', 'Kick', function( pl, args )
 	oc.notify_fancy( player.GetAll(), '#P kicked #P for #S', pl, args.player, args.reason );
 	args.player:Kick( args.reason );
 end)
@@ -221,7 +221,7 @@ local cmd = oc.command( 'management', 'ban', function( pl, args )
 	oc.sb.banPlayer( pl, args.player, math.floor(args.len/60), args.reason, function(data, err)
 		oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
 		game.ConsoleCommand('kickid '..args.player:SteamID()..' "'..args.reason..'"\n');
-	end);
+	end);	
 end)
 cmd:addParam 'player' { type = 'player' }
 cmd:addParam 'len' { type = 'time' }

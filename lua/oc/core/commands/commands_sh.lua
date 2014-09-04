@@ -38,9 +38,10 @@ local command_mt = {};
 command_mt.__index = command_mt;
 
 function oc.command( category, command, action )
-	command = string.lower( command );
 	
 	local c = {};
+	c.printName = command;
+	command = command:lower():gsub(' ', '');
 	
 	c.category = category;
 	c.action = action;

@@ -122,7 +122,7 @@ function SKIN:PaintCheckBox(panel, w, h)
 	surface.DrawOutlinedRect(0,0,w,h);
 
 	if panel:GetChecked() then
-		surface.SetDrawColor(50,50,50);
+		surface.SetDrawColor(panel.color or 50,50,50);
 		surface.DrawRect(3, 3, w-6, h-6);
 	end
 end
