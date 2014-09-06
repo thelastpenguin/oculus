@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 -- Adminmode                                                  --
 ----------------------------------------------------------------
-local cmd = oc.command( 'utility', 'admin mode', function( pl )
+local cmd = oc.command( 'utility', 'adminmode', function( pl )
 	if not oc.p(pl).AdminMode then
 		oc.p(pl).AdminMode = true
 		oc.notify_fancy(player.GetAll(), '#P is now administrating.', pl)
@@ -29,7 +29,7 @@ oc.hook.Add('ServerVarsLoaded', function(pl)
 	pl:ConCommand('oc motd')
 end)
 
-local cmd = oc.command('utility', 'set motd', function(pl, args)
+local cmd = oc.command('utility', 'setmotd', function(pl, args)
 	oc.setServerVar('motd', args.link)
 end)
 cmd:addParam 'link' { type = 'string', 'fill_line' }
@@ -52,7 +52,7 @@ local cmd = oc.command( 'utility', 'sit', function( pl )
 end)
 cmd:addFlag 'AdminMode'
 
-local cmd = oc.command('utility', 'Set Admin Room', function(pl)
+local cmd = oc.command('utility', 'setadminroom', function(pl)
 	oc.setServerVar('adminroom', pl:GetPos())
 end)
 
@@ -67,6 +67,18 @@ local cmd = oc.command( 'utility', 'go', function( pl )
 		oc.notify_fancy(pl, 'This entity has no owner')
 	end
 end)
+cmd:setHelp 'Get a props owner'
+
+----------------------------------------------------------------
+-- Previous offences                                          --
+----------------------------------------------------------------
+local cmd = oc.command('utility', 'po', function(pl, args)
+end)
+cmd:runOnClient(function(args)
+	pTheme.OpenURL('HTML', 'superiorservers.co/sbans/index.php/bans?q=' .. args.target:SteamID())
+end)
+cmd:addParam 'target' { type = 'player' }
+cmd:setHelp 'Get a players previous bans'
 
 ----------------------------------------------------------------
 -- Logs                                                       --
@@ -80,6 +92,7 @@ cmd:addFlag 'AdminMode'
 -- Relaod Map                                                 --
 ----------------------------------------------------------------
 local cmd = oc.command( 'utility', 'reload', function( pl )
-	RunConsoleCommand("changelevel", game.GetMap());
+	RunConsoleCommand( "changelevel", game.GetMap() );
 end)
 cmd:addFlag 'AdminMode'
+
