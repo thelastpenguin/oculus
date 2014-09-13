@@ -6,6 +6,7 @@ end
 
 
 local view_groups = ocm.menu.addView('groups', 'GROUPS');
+view_groups:addPerm('menu.view.groups');
 view_groups:setIcon('oc/icon64/group2.png');
 view_groups:setGenerator(function(self, panel)
 

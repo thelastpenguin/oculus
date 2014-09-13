@@ -15,9 +15,14 @@ oc.include_sh 'core/parser_ext_sh.lua' 'parser ext sh';
 oc.include_sh 'core/parser_ext_cl.lua' 'parser ext cl';
 
 oc.LoadMsg('\nLOADING VIEWS\n');
-oc.IncludeDir('oc_ext/modules/menu/views/', function(f)
+print(path.join(path.cwd(), '../views')..'/');
+oc.IncludeDir(path.join(path.cwd(), '../views')..'/', function(f)
 	oc.include_cl(f)('view: '..f);
 end);
+oc.IncludeDir(path.join(path.cwd(), '../views_sv')..'/', function(f)
+	oc.include_sv(f)('view sv: '..f);
+end);
+
 
 -- add command
 local menu;

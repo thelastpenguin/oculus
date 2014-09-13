@@ -65,11 +65,14 @@ require 'async';
 require 'rpc';
 require 'pnet';
 require 'dprint';
+require 'path';
 (SERVER and require or xfn.noop)('pmysql')
 
 -- LIBRARIES
 print();oc.LoadMsg( '\nLIBRARIES\n' );
 oc.include_sh 'lib/hook_sh.lua' 'LIB: hooks';
+--oc.include_sv 'core/hooks_sv.lua' 'server hooks';
+--oc.include_cl 'core/hooks_cl.lua' 'client hooks';
 
 print();oc.LoadMsg( '\nUTILS\n' );
 oc.include_sh 'util/stringutil.lua' 'UTIL: string util';
@@ -81,7 +84,8 @@ oc.include_sh 'util/binary_sh.lua' 'UTIL: binary';
 oc.include_sh 'util/obj_perms_sh.lua' 'UTIL: perms';
 oc.include_sv 'util/physics_sv.lua' 'UTIL: physics';
 oc.include_sv 'util/sourcebans_sv.lua' 'UTIL: sourcebans';
-oc.include_sv 'util/ban_sv.lua' 'UTIL: ban_sv';
+-- depricated
+--oc.include_sv 'util/ban_sv.lua' 'UTIL: ban_sv';
 
 print();oc.LoadMsg( '\nCORE\n' );
 oc.include_sv 'core/group/group_sv.lua' 'CORE: group sv';
@@ -93,11 +97,6 @@ oc.include_sh 'core/commands/commands_sh.lua' 'CORE: commands';
 oc.include_sh 'core/commands/autocomplete_sh.lua' 'CORE: autocomplete';
 oc.include_sh 'core/player/player_meta_sh.lua' 'CORE: player meta sh';
 oc.include_sh 'core/plugins_sh.lua' '\nCORE: plugins\n';
-
-
-print();oc.LoadMsg( '\nHOOKS\n' );
-oc.include_sv 'core/hooks_sv.lua' 'server hooks';
-oc.include_cl 'core/hooks_cl.lua' 'client hooks';
 
 
 oc.hook.Call('loaded');

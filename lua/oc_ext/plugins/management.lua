@@ -170,7 +170,7 @@ cmd:addParam 'players' { type = 'player', 'multi' }
 cmd:addFlag 'AdminMode';
 
 oc.hook.Add("PlayerCanHearPlayersVoice", function( listener, talker )
-	if oc.p(talker).VoiceMuted then return false end
+	if oc.p(talker).VoiceMuted then return false, false end
 end)
 
 ----------------------------------------------------------------
@@ -201,7 +201,7 @@ end)
 ----------------------------------------------------------------
 -- Kick                                                       --
 ----------------------------------------------------------------
-local cmd = oc.command( 'management', 'Kick', function( pl, args )
+local cmd = oc.command( 'management', 'kick', function( pl, args )
 	oc.notify_fancy( player.GetAll(), '#P kicked #P for #S', pl, args.player, args.reason );
 	args.player:Kick( args.reason );
 end)
@@ -212,36 +212,34 @@ cmd:addParam 'reason' { type = 'string', 'fill_line' }
 -- Ban                                                        --
 ----------------------------------------------------------------
 local cmd = oc.command( 'management', 'ban', function( pl, args )
-	local record = oc.sb.checkSteamID(args.player:SteamID());
-	if record then
-		oc.notify(pl, oc.cfg.color_error, 'Error! This player is already banned. Unban him and ban him again if you want to overwrite.');
-		return ;
+
+	local playerObj;
+	for k,v in pairs(player.GetAll())do
+		if v:SteamID() == args.steamid then
+			playerObj = v;
+		end
 	end
 	
-	oc.sb.banPlayer( pl, args.player, math.floor(args.len/60), args.reason, function(data, err)
-		oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
-		game.ConsoleCommand('kickid '..args.player:SteamID()..' "'..args.reason..'"\n');
-	end);	
-end)
-cmd:addParam 'player' { type = 'player' }
-cmd:addParam 'len' { type = 'time' }
-cmd:addParam 'reason' { type = 'string', 'fill_line' }
-
-local cmd = oc.command( 'management', 'banid', function( pl, args )
 	local record = oc.sb.checkSteamID(args.steamid);
 	if record then
 		oc.notify(pl, oc.cfg.color_error, 'Error! This player is already banned. Unban him and ban him again if you want to overwrite.');
+		if playerObj then playerObj:Kick("banned"); end
 		return ;
 	end
 	
-	oc.sb.banSteamID( pl, args.steamid, 'John Doe', math.floor(args.len/60), args.reason )
-	
-	oc.notify_fancy( player.GetAll(), '#P banned #S for #T reason #S', pl, args.steamid, args.len, args.reason );
+	if playerObj then
+		oc.sb.banPlayer( pl, playerObj, math.floor(args.len/60), args.reason, function(data, err)
+			oc.notify_fancy( player.GetAll(), '#P banned #P for #T reason #S.', pl, args.player, args.len, args.reason );
+			game.ConsoleCommand('kickid '..args.player:SteamID()..' "'..args.reason..'"\n');
+		end);
+	else
+		oc.sb.banSteamID( pl, args.steamid, 'John Doe', math.floor(args.len/60), args.reason )
+		oc.notify_fancy( player.GetAll(), '#P banned #S for #T reason #S', pl, args.steamid, args.len, args.reason );
+	end
 end)
 cmd:addParam 'steamid' { type = 'steamid' }
 cmd:addParam 'len' { type = 'time' }
 cmd:addParam 'reason' { type = 'string', 'fill_line' }
-
 
 local cmd = oc.command( 'management', 'unban', function( pl, args )
 	local record = oc.sb.checkSteamID( args.steamid );

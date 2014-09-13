@@ -1,4 +1,5 @@
 local view_cmds = ocm.menu.addView('cmds', 'ACTIONS');
+
 view_cmds:setGenerator(function(self, panel, done)
 	local cmdList = vgui.Create('DScrollPanel', panel);
 	

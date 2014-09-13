@@ -75,7 +75,7 @@ end
 -- Tabs                                                       --
 ----------------------------------------------------------------
 function SKIN:PaintTab(panel, w, h)
-	-- we dont use this shit	
+	-- we dont use this shit
 end
 
 ----------------------------------------------------------------
@@ -84,12 +84,12 @@ end
 function SKIN:PaintVScrollBar(panel, w, h) end
 
 function SKIN:PaintScrollBarGrip(panel, w, h)
-	if w ~= 5 then
-		panel:SetWide(5);
-		w = 5;
+	if w ~= 8 then
+		panel:SetWide(8);
+		w = 8;
 	end
 	surface.SetDrawColor(50,50,50,230);
-	surface.DrawRect(0,0,w,h);
+	surface.DrawRect(w*0.2,0,w*0.8,h);
 end
 
 function SKIN:PaintButtonUp(panel, w, h) end

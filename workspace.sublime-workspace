@@ -8,42 +8,72 @@
 	"buffers":
 	[
 		{
-			"file": "/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/path.lua",
+			"file": "lua/oc_ext/plugins/management.lua",
 			"settings":
 			{
-				"buffer_size": 331,
+				"buffer_size": 8600,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "lua/oc_ext/modules/menu/vgui/perms.lua",
+			"file": "lua/oc_ext/modules/menu/views/view_bans.lua",
 			"settings":
 			{
-				"buffer_size": 3541,
+				"buffer_size": 351,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "lua/oc_ext/modules/menu/vgui_theme_cl.lua",
+			"file": "lua/oc_ext/modules/menu/views/view_commands.lua",
 			"settings":
 			{
-				"buffer_size": 5510,
+				"buffer_size": 4290,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "lua/oc_ext/modules/menu/views/view_groups.lua",
+			"file": "lua/oc_ext/modules/menu/init_sh.lua",
 			"settings":
 			{
-				"buffer_size": 2967,
+				"buffer_size": 988,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "lua/oc/core/group/group_cl.lua",
+			"contents": "util.AddNetworkString('oc.menu.fetchBans');\nnet.Receive('oc.menu.fetchBans', function(pl)\n	if oc.p(pl):hasPerm('menu.view.bans') then\n		local modseq = net.ReadUInt(32);\n\n		for id, ban in pairs(oc.sb.bans)do\n			if ban.modseq >= modseq then\n				net.Start('oc.menu.fetchBans')\n					net.WriteString(ban.steam);\n					net.WriteString(ban.name);\n					net.WriteString(ban.reason);\n					net.WriteString(ban.)\n				net.Send(pl);\n			end\n		end\n	end\nend);",
+			"file": "lua/oc_ext/modules/menu/views_sv/view_bans_sv.lua",
+			"file_size": 451,
+			"file_write_time": 130544706090035063,
 			"settings":
 			{
-				"buffer_size": 1818,
+				"buffer_size": 441,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "if not oc._sbdb then\n	oc._sbdb = pmysql.newdb( \"lastpenguin.com\", \"penguinwebhost\", \"pE2SGHXU3eST9qa\", \"penguinwebhost_oculus\", 3306 );\nend\n\nlocal prefix = 'sb_';\nlocal queries = {\n	SELECT_SERVER_ID_BY_ADDR = 'SELECT id FROM '..prefix..'servers WHERE host = \\'?\\' AND port = ?',\n	INSERT_SERVER = 'INSERT INTO '..prefix..'servers (host, port, game_id) VALUES(\\'?\\', ?, 9)',\n	SELECT_ADMIN_BY_STEAMID = 'SELECT id FROM '..prefix..'admins WHERE identity = \\'?\\'',\n	INSERT_ADMIN = 'INSERT INTO '..prefix..'admins (name, identity, create_time) VALUES (\\'?\\',\\'?\\', ?)',\n	UPDATE_ADMIN = 'UPDATE '..prefix..'admins SET name = \\'?\\' WHERE identity = \\'?\\'',\n	INSERT_BAN_BY_STEAMID = 'INSERT INTO '..prefix..'bans (server_id,admin_id, admin_ip, steam, name, reason, create_time, length) VALUES (?, ?, \\'?\\', \\'?\\', \\'?\\', \\'?\\', ?, ?)',\n	INSERT_BAN_BY_STEAMID_IP = 'INSERT INTO '..prefix..'bans (server_id,admin_id, admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, ?, \\'?\\', \\'?\\', \\'?\\', \\'?\\', \\'?\\', ?, ?)',\n	INSERT_BAN_BY_STEAMID_CONSOLE = 'INSERT INTO '..prefix..'bans (server_id,admin_ip, steam, name, reason, create_time, length) VALUES (?, \\'?\\', \\'?\\', \\'?\\', \\'?\\', ?, ?)',\n	INSERT_BAN_BY_STEAMID_CONSOLE_IP = 'INSERT INTO '..prefix..'bans (server_id,admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, \\'?\\', \\'?\\', \\'?\\', \\'?\\', \\'?\\', ?, ?)',\n	--SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (length = 0 OR (create_time + length*60) > ?)',\n	SELECT_UPDATED_BANS = [[\n		SELECT prefix_bans.*, prefix_admins.name AS admin_name \n		FROM prefix_bans\n		INNER JOIN prefix_admins\n		ON prefix_bans.admin_id = prefix_admins.id\n	]]\n\n	UNBAN_BY_STEAMID_CONSOLE = 'UPDATE '..prefix..'bans SET unban_reason = \\'?\\', unban_time = ? WHERE id = ?',\n	UNBAN_BY_STEAMID = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \\'?\\', unban_time = ? WHERE id = ?',\n}\n\nlocal db = oc._sbdb;\n\noc.sb = {};\n\noc.sb.hostip = GetConVarString('ip');\noc.sb.hostport = GetConVarString('hostport');\noc.sb.hostaddr = oc.sb.hostip..':'..oc.sb.hostport;\n\n\nlocal function GetServerID()\n	local data = db:query_sync(queries.SELECT_SERVER_ID_BY_ADDR, {oc.sb.hostip, oc.sb.hostport});\n	oc.sb.svid = data[1] and data[1].id;\nend\n\nlocal function ResolveServerID()\n	GetServerID();\n	if not oc.sb.svid then\n		db:query_sync(queries.INSERT_SERVER, {oc.sb.hostip, oc.sb.hostport});\n		GetServerID();\n	end\n	oc.LoadMsg(2, 'Loaded SourceBans Server ID: '..oc.sb.svid);	\nend\nResolveServerID();\n\n\n\n-- fuk you aStonedPenguin\nfunction oc.sb.playerGetAdminId(pl, done)\n	db:query_ex(queries.SELECT_ADMIN_BY_STEAMID, {pl:SteamID()}, function(data, err)\n		if err then return done() end\n		if data[1] then\n			done(data[1].id);\n			db:query_ex(queries.UPDATE_ADMIN, {oc.p(pl).uid..'-'..pl:Name(), pl:SteamID()});\n		else\n			db:query_ex(queries.INSERT_ADMIN, {pl:Name(), pl:SteamID(), os.time()}, function(data, err)\n				if err then return done() end\n				oc.sb.playerGetAdminId(pl, done);	\n			end);\n		end\n	end);\nend\n\n-- I hate my life\nfunction oc.sb.banSteamID( admin, player_steamid, player_name, length, reason, done)\n	if IsValid(admin) then\n		oc.sb.playerGetAdminId(admin, function(id)\n			if not id then\n				error('failed to load admin id for ' .. admin:SteamID());\n			end\n			\n			dprint('admin id is: '..id);\n			db:query_ex(queries.INSERT_BAN_BY_STEAMID, {oc.sb.svid, id, admin:IPAddress(), player_steamid, player_name, reason, os.time(), length}, function()\n				oc.sb.syncBans(done);	\n			end);\n		end);\n		\n	else\n		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE, {oc.sb.svid, oc.sb.hostip, player_steamid, player_name, reason, os.time(), length}, function()\n			oc.sb.syncBans(done);	\n		end);\n	end\nend\n\nfunction oc.sb.banPlayer( admin, player, length, reason, done )\n	local playerIpAddr = player:IPAddress();\n	local playerSteamID = player:SteamID();\n	local playerName = player:Name();\n	if IsValid(admin) then\n		oc.sb.playerGetAdminId(admin, function(id)\n			if not id then\n				error('failed to load admin id for ' .. admin:SteamID());\n			end\n			\n			dprint('admin id is: '..id);\n			db:query_ex(queries.INSERT_BAN_BY_STEAMID_IP, {oc.sb.svid, id, admin:IPAddress(), playerSteamID, playerIpAddr, playerName, reason, os.time(), length}, function()\n				oc.sb.syncBans(done);\n			end);\n		end);\n		\n	else\n		db:query_ex(queries.INSERT_BAN_BY_STEAMID_CONSOLE_IP, {oc.sb.svid, oc.sb.hostip, playerSteamID, playerIpAddr, playerName, reason, os.time(), length}, function()\n			oc.sb.syncBans(done);	\n		end);\n	end\nend\n\nfunction oc.sb.unbanSteamID( admin, banid, reason, done )\n	if IsValid(admin) then\n		oc.sb.playerGetAdminId(admin, function(id)\n			if not id then\n				error('failed to load admin id for ' .. admin:SteamID());\n			end\n			\n			dprint('admin id is: '..id);\n			\n			db:query_ex(queries.UNBAN_BY_STEAMID, {id, reason, os.time(), banid}, function()\n				oc.sb.syncBans(done);	\n			end);\n		end);\n	else\n		db:query_ex(queries.UNBAN_BY_STEAMID_CONSOLE, {reason, os.time(), banid}, function()\n			oc.sb.syncBans(done);	\n		end);\n	end\nend\n\n\nlocal lastsync = -1;\noc.sb.bans = {};\n\nlocal modseq = 0;\nfunction oc.sb.syncBans(done)\n	dprint('syncing all bans');\n	db:query_ex(queries.SELECT_UPDATED_BANS, {lastsync, lastsync, os.time()}, function(data)\n		for _, ban in pairs(data)do\n			oc.sb.bans[ban.id] = ban;\n\n			-- modseq is used primarily for syncing bans accross network.\n			ban.modseq = modseq;\n			modseq = modseq + 1;\n		end\n		lastsync = os.time();\n		\n		dprint('loaded '..table.Count(data)..' bans from SourceBans');\n		\n		if done then done() end\n	end);\nend\noc.sb.syncBans();\n\nfunction oc.sb.checkSteamID( steamid )\n	local curtime = os.time();\n	for id, ban in pairs(oc.sb.bans)do\n		local length = tonumber(ban.length);\n		if ban.steam == steamid and (length == 0 or ban.create_time + length * 60 > curtime) and not ban.unban_time then\n			return ban;\n		end\n	end\n	return false;\nend\n\n\nlocal message = [[\nwww.SuperiorServers.co\n  BAN ID: %s\n  PLAYER NAME: %s\n  REASON: %s\n  BANNED ON: %s\n  BANNED UNTIL: %s\n]]\n\nlocal timeFormat = '%m/%d/%y - %H:%M'\n\nhook.Add('CheckPassword', 'oc.SourceBans', function(steamid64, ipPort, serverPassword, userPassword, name)\n	if serverPassword and serverPassword:len() > 0 and serverPassword ~= userPassword then\n		return false, 'Password: '..userPassword..' is incorrect';\n	end\n	local steamid = util.SteamIDFrom64( steamid64 );\n	dprint('decoded connecting player steamid: '..steamid);\n	\n	local record = oc.sb.checkSteamID( steamid );\n	if record then\n		\n		local bannedDate = os.date(timeFormat, record.create_time);\n		local unbanDate = os.date(timeFormat, record.create_time + record.length * 60);\n		\n		local ret = string.format(message, record.id, record.name, record.reason, bannedDate, unbanDate)\n		\n		return false, ret\n	end	\n	return true;\nend);",
+			"file": "lua/oc/util/sourcebans_sv.lua",
+			"file_size": 6796,
+			"file_write_time": 130544697979721180,
+			"settings":
+			{
+				"buffer_size": 6787,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/Owner/Desktop/install notes/ubuntu-mysql.md",
+			"settings":
+			{
+				"buffer_size": 63,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "lua/oc/main.lua",
+			"settings":
+			{
+				"buffer_size": 3084,
 				"line_ending": "Windows"
 			}
 		}
@@ -132,134 +162,134 @@
 	},
 	"file_history":
 	[
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/vgui_theme_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/group/group_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/group/group_sv.lua",
+		"/C/Users/Owner/Downloads/phpmyadmin/config.sample.inc.php",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/lib/hook_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/vgui/perms.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/path.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/gamemode/init_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/gamemode/init_sv.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/init_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/moduleSys.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/gamemode/modules_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/sandbox/gamemode/init.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/prp_base/gamemode/modules/core/player_sv.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_groups.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/prp_base/gamemode/modules_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/prp_base/sandbox.txt",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/sandbox/gamemode/editor_player.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/test.lua",
-		"/C/Users/Owner/AppData/Local/Temp/scp54177/var/www/superiorservers.co/steamgrouprequest/shiz.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp43075/var/www/superiorservers.co/steamgrouprequest/mysql.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp42286/var/www/superiorservers.co/steamgrouprequest/userisinsteamgroup.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp52262/var/www/superiorservers.co/steamgrouprequest/error.log",
-		"/C/Users/Owner/AppData/Local/Temp/scp01693/etc/php5/apache2/php.ini",
-		"/C/SteamLibrary/gmod_data/_disabled_addons/global/p_banmsg/lua/pbanmsg_config.lua",
-		"/C/Users/Owner/AppData/Local/Temp/scp32927/var/www/turbo.lastpenguin.com/sync/main.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp03003/var/www/turbo.lastpenguin.com/sync/.htpasswd",
-		"/C/Users/Owner/AppData/Local/Temp/scp03357/var/www/turbo.lastpenguin.com/sync/.htaccess",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_commands.lua",
-		"/C/SteamLibrary/gmod_data/_disabled_addons/global/p_banmsg/lua/ulib/modules/server/p_banmessage.lua",
-		"/C/Users/Owner/AppData/Local/Temp/scp35920/var/www/turbo.lastpenguin.com/sync/server-zs.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp56459/var/www/turbo.lastpenguin.com/sync/lib/ftp.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp52013/var/www/turbo.lastpenguin.com/sync/lib/io.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp37104/var/www/turbo.lastpenguin.com/sync/server-sledbuild.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp27304/var/www/turbo.lastpenguin.com/sync/sync.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp38951/var/www/turbo.lastpenguin.com/sync/server-murder.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp36201/var/www/turbo.lastpenguin.com/sync/server-buildrp.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp48477/var/www/turbo.lastpenguin.com/sync/main2.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp01355/etc/apache2/sites-available/turbo.lastpenguin.com",
-		"/C/Users/Owner/AppData/Local/Temp/scp21618/var/www/turbo.lastpenguin.com/fastdl/maps/zm_4ngry_quaruntine.bsp.bz2",
-		"/C/Users/Owner/AppData/Local/Temp/scp51412/var/www/turbo.lastpenguin.com/sync/main2.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp54489/var/www/turbo.lastpenguin.com/footer.html",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/util/data_sv.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/player/player_sv.lua",
-		"/C/Users/Owner/AppData/Local/Temp/scp53725/var/www/turbo.lastpenguin.com/.htaccess",
-		"/C/Users/Owner/AppData/Local/Temp/scp54712/var/www/turbo.lastpenguin.com/header.html",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/perms.lua",
-		"/C/Users/Owner/AppData/Local/Temp/scp20200/var/www/turbo.lastpenguin.com/sync.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp32945/var/www/turbo.lastpenguin.com/sync-v2.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp24032/var/www/turbo.lastpenguin.com/sync/ftpWorkerPool.php",
-		"/C/Users/Owner/Downloads/oc_users.sql",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/management.lua",
-		"/C/Users/Owner/Desktop/install notes/ubuntu-ftp.md",
-		"/C/Users/Owner/Desktop/install notes/ubuntu-mysql",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/util/sourcebans_sv.lua",
-		"/C/Users/Owner/Desktop/passwords/private-mysql-server.txt",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/data_sv 2.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/data_sv.lua",
-		"/C/Users/Owner/AppData/Local/Temp/scp25085/var/www/turbo.lastpenguin.com/upload.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp33971/var/www/turbo.lastpenguin.com/listings.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp15871/etc/apache2/apache2.conf",
-		"/C/Users/Owner/AppData/Local/Temp/scp30979/etc/apache2/sites-available/default",
-		"/C/Users/Owner/AppData/Local/Temp/scp07258/etc/vsftpd.conf",
-		"/C/Users/Owner/Desktop/install notes/ubuntu-mysql.md",
-		"/C/Users/Owner/AppData/Local/Temp/scp01076/var/www/turbo.lastpenguin.com/bz2.php",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/filesync.lua",
-		"/C/Users/Owner/AppData/Local/Temp/scp57007/etc/php5/apache2/php.ini",
-		"/C/Users/Owner/AppData/Local/Temp/scp24620/var/www/turbo.lastpenguin.com/.htaccess",
-		"/C/Users/Owner/AppData/Local/Temp/scp55259/var/www/turbo.lastpenguin.com/files.sqlite",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/addnew.php",
-		"/C/Users/Owner/AppData/Local/Temp/scp46153/var/www/turbo.lastpenguin.com/test.php",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/file.php",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/commands/parser_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/core/parser_ext_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_google.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/commands/commands_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/groups.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_players.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/redirect.php",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/vgui/util.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/.htaccess",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/core/views_sh.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/.htaccess 2",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/sqlite",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/hooks_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/util/server_vars_sv.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/player/player_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/player/player_meta_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/lua/includes/modules/cleanup.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/lua/includes/modules/draw.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/view.php",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/.htaccess 3",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/vgui/main.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/.htaccess",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/thingy.tff",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/2huxQ-javaw.jpg",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/84DYK.html",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/sv_stuffed_printers.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/stuffed_printers_core.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/stuffed_printers_cfg.lua",
+		"/C/Users/Owner/Desktop/install notes/private-mysql-server.txt",
+		"/C/Users/Owner/AppData/Local/Temp/scp40361/var/www/superiorservers.co/error_pages/404.html",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_bans.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/core/parser_ext_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/_config_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/plugins_sh.lua",
-		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/User/Colorsublime/themes/myEden.tmTheme",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gmodz_items/base.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/core/inventory/invmenu_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/core/inventory/invmenu_sv.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/lib/source_compiler_sh.lua",
-		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/entities/effects/gmodz_bloodspray.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/main_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/entities/effects/bloodstream.lua",
-		"/C/Users/Owner/Desktop/passwords/SublimeTextThemes.txt",
-		"/C/Users/Owner/AppData/Roaming/Sublime Text 3/Packages/User/Preferences.sublime-settings",
-		"/C/Users/Owner/Downloads/Eden.tmTheme",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/content/materials/blood/sprite_bloodspray4.vmt",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/cl_init.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/core/hud_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/entities/entities/node_npc_maker/init.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/vgui/vgui_hud_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/_mysql.sql",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/GmodZ.txt",
+		"/C/Users/Owner/AppData/Local/Temp/scp02192/etc/php5/fpm/php.ini",
+		"/C/Users/Owner/AppData/Local/Temp/scp28892/etc/nginx/includes/location-php",
+		"/C/Users/Owner/AppData/Local/Temp/scp56562/etc/nginx/sites-enabled/apache",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/commands/parser_sh.lua",
+		"/C/Users/Owner/AppData/Local/Temp/scp56586/var/www/turbo.lastpenguin.com/test.php",
+		"/C/Users/Owner/AppData/Local/Temp/scp09275/var/www/superiorservers.co/sbans/index.php",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_groups.lua",
+		"/C/Users/Owner/AppData/Local/Temp/scp56528/etc/nginx/includes/apache-proxy",
+		"/C/Users/Owner/AppData/Local/Temp/scp26823/etc/nginx/includes/fcgi-params",
+		"/C/Users/Owner/AppData/Local/Temp/scp16891/etc/nginx/sites-enabled/gitlab",
+		"/C/Users/Owner/AppData/Local/Temp/scp25437/etc/apache2/sites-enabled/turbo.lastpenguin.com",
+		"/C/Users/Owner/AppData/Local/Temp/scp24483/etc/apache2/sites-enabled/000-default",
+		"/C/Users/Owner/AppData/Local/Temp/scp24867/etc/apache2/apache2.conf",
+		"/C/Users/Owner/AppData/Local/Temp/scp24333/etc/apache2/mods-enabled/rpaf.conf",
+		"/C/Users/Owner/AppData/Local/Temp/scp23337/etc/apache2/apache2.conf",
+		"/C/Users/Owner/AppData/Local/Temp/scp00007/etc/nginx/sites-enabled/apache",
+		"/C/Users/Owner/AppData/Local/Temp/scp00534/etc/nginx/sites-enabled/gitlab",
+		"/C/Users/Owner/AppData/Local/Temp/scp03312/etc/nginx/nginx.conf",
+		"/C/Users/Owner/AppData/Local/Temp/scp00171/etc/nginx/sites-enabled/test",
+		"/C/Users/Owner/AppData/Local/Temp/scp57883/etc/php5/fpm/pool.d/www.conf",
+		"/C/Users/Owner/AppData/Local/Temp/scp54193/etc/php5/fpm/php.ini",
+		"/C/Users/Owner/AppData/Local/Temp/scp53156/etc/php5/conf.d/10-pdo.ini",
+		"/C/Users/Owner/AppData/Local/Temp/scp53073/etc/php5/conf.d/20-imap.ini",
+		"/C/Users/Owner/AppData/Local/Temp/scp53684/etc/php5/mods-available/curl.ini",
+		"/E/WebDev/lua-obfuscate/lib/header.js",
+		"/E/WebDev/lua-obfuscate/app.js",
+		"/E/WebDev/lua-obfuscate/lib/config.js",
+		"/E/WebDev/lua-obfuscate/lib/watcher.js",
+		"/E/WebDev/lua-obfuscate/lib/synth.js",
+		"/E/WebDev/lua-obfuscate/lib/encodeNumber.js",
+		"/E/WebDev/lua-obfuscate/header.txt",
+		"/E/WebDev/lua-obfuscate/header.js",
+		"/C/Users/Owner/.ssh/github_rsa.pub",
+		"/C/Users/Owner/AppData/Local/Temp/scp52589/etc/nginx/sites-enabled/apache",
+		"/C/Users/Owner/AppData/Local/Temp/scp38723/etc/nginx/sites-enabled/gitlab",
+		"/C/Users/Owner/AppData/Local/Temp/scp45188/etc/apache2/sites-enabled/000-default",
+		"/C/Users/Owner/AppData/Local/Temp/scp47728/etc/apache2/ports.conf",
+		"/C/Users/Owner/AppData/Local/Temp/scp45355/etc/apache2/sites-enabled/turbo.lastpenguin.com",
+		"/C/Users/Owner/AppData/Local/Temp/scp05240/etc/nginx/sites-available/default",
+		"/C/Users/Owner/Desktop/install notes/gitlab.txt",
+		"/C/Users/Owner/.ssh/id_rsa.pub",
+		"/C/Users/Owner/Documents/GitHub/test3/test/ewzri0bn.jh5.txt",
+		"/C/Users/Owner/Documents/GitHub/test3/test/hnpecega.p3x.txt",
+		"/C/Users/Owner/Documents/GitHub/test3/test/eeaidipe.lio.txt",
+		"/C/Users/Owner/Documents/GitHub/test3/test/readme.md",
+		"/C/Users/Owner/AppData/Local/Temp/scp05476/etc/nginx/sites-available/gitlab",
+		"/C/Users/Owner/AppData/Local/Temp/scp29675/home/git/gitlab-shell/config.yml",
+		"/C/Users/Owner/AppData/Local/Temp/scp46243/home/git/gitlab/config/database.yml",
+		"/C/Users/Owner/AppData/Local/Temp/scp42675/home/git/gitlab/config/unicorn.rb",
+		"/C/Users/Owner/AppData/Local/Temp/scp10014/home/git/gitlab/log/production.log",
+		"/C/Users/Owner/Desktop/install notes/astonedpenguin-dedi.txt",
+		"/C/Users/Owner/AppData/Local/Temp/scp38912/home/git/gitlab/config/gitlab.yml",
+		"/C/Users/Owner/AppData/Local/Temp/scp11214/home/git/gitlab/log/unicorn.stderr.log",
+		"/C/Users/Owner/AppData/Local/Temp/scp11308/home/git/gitlab/log/unicorn.stdout.log",
+		"/C/Users/Owner/AppData/Local/Temp/scp11004/home/git/gitlab/log/application.log",
+		"/C/Users/Owner/AppData/Local/Temp/scp09108/home/git/gitlab/log/githost.log",
+		"/C/Users/Owner/AppData/Local/Temp/scp49313/home/git/gitlab-shell/gitlab-shell.log",
+		"/C/Users/Owner/AppData/Local/Temp/scp06015/home/git/gitlab/CHANGELOG",
+		"/C/Users/Owner/AppData/Local/Temp/scp09771/home/git/gitlab-shell/bin/check",
+		"/C/Users/Owner/AppData/Local/Temp/scp09575/home/git/gitlab-shell/lib/gitlab_net.rb",
+		"/C/Users/Owner/AppData/Local/Temp/scp09972/home/git/gitlab-shell/lib/gitlab_init.rb",
+		"/C/Users/Owner/.ssh/gitlab.pub",
+		"/C/Users/Owner/AppData/Local/Temp/scp39167/home/git/.ssh/authorized_keys",
+		"/C/Users/Owner/Documents/GitHub/test/readme.md",
+		"/C/Users/Owner/AppData/Local/Temp/scp54261/etc/nginx/sites-enabled/gitlab",
+		"/C/Users/Owner/Desktop/install notes/ubuntu-mysql.md",
+		"/C/Users/Owner/AppData/Local/Temp/scp00572/home/git/gitlab/config/gitlab.yml",
+		"/C/Users/Owner/.ssh/github_rsa",
+		"/C/Users/Owner/AppData/Local/Temp/scp10783/home/git/gitlab/config/environments/production.rb",
+		"/C/Users/Owner/AppData/Local/Temp/scp58647/home/git/gitlab-shell/config.yml",
+		"/C/Users/Owner/AppData/Local/Temp/scp15495/home/git/gitlab/config/unicorn.rb",
+		"/C/Users/Owner/AppData/Local/Temp/scp46325/home/git/gitlab/config/environment.rb",
+		"/C/Users/Owner/AppData/Local/Temp/scp42069/etc/hosts",
+		"/C/Users/Owner/AppData/Local/Temp/scp01579/home/git/gitlab/config/database.yml",
+		"/C/Users/Owner/AppData/Local/Temp/scp56239/etc/nginx/sites-enabled/default",
+		"/C/Users/Owner/AppData/Local/Temp/scp56762/etc/nginx/sites-available/default",
+		"/C/Users/Owner/Desktop/install notes/ubuntu-ftp.md",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/util/sourcebans_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_commands.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views_sv/view_bans_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/pnet.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/screengrab.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/utility.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/gamemode/core_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/init_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/path.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/gamemode/init.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/core/addhooks_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/core/map_editor/mapeditor_cl.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/netstream.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/player/player_meta_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/core/commands/commands_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/plugins/management.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views/view_players.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/rpc.luasrc",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/pon.luasrc",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/pnet.luasrc",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc_ext/modules/menu/views_sv/view_players_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/gamemode/core/hooks_sv.lua",
 		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/main.lua",
-		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/vgui_hud_cl.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/_config_sh.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/lib/glsocks_sv.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/lua/oc/lib/functionutil.lua",
-		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/g_oculus/README.md"
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/GmodZ/_mysql.sql",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/addhooks_cl.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/addhooks_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/plib.lua",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/server.cfg",
+		"/C/Users/Owner/AppData/Local/Temp/scp40318/var/www/turbo.lastpenguin.com/sync/server-gmod-dayz.php",
+		"/C/Users/Owner/AppData/Local/Temp/scp37757/var/www/turbo.lastpenguin.com/sync/main.php",
+		"/C/Users/Owner/AppData/Local/Temp/scp43881/var/www/turbo.lastpenguin.com/sync/lib/ftp.php",
+		"/C/Users/Owner/AppData/Local/Temp/scp40367/var/www/turbo.lastpenguin.com/sync/server-murder.php",
+		"/C/Users/Owner/AppData/Local/Temp/fz3temp-1/autoexec.cfg",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/autorun/main_sh.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/util/hooks.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/test2.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/util/foo.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/test.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/main_cl.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/main_sv.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/util/db.lua",
+		"/C/Users/Owner/Desktop/passwords/New Text Document.txt",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/autorun/p_modules_add.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/modules/dir/foo.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/path.lua",
+		"/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/gamemodes/core_rp/gamemode/cl_init.lua"
 	],
 	"find":
 	{
@@ -277,6 +307,52 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"player",
+			"file_upload",
+			"mod",
+			"listen",
+			"cgi.fix_pathinfo",
+			"port",
+			"company",
+			"name",
+			"email",
+			"port",
+			"fetchVars",
+			"syncPermTree",
+			"syncvars",
+			"runOnClient",
+			"net.Read",
+			"net.WriteString",
+			"net.WriteFloat",
+			"net.WriteDouble",
+			"net.WriteInt",
+			"net.WriteUInt",
+			"TYPE_POINTER",
+			"TYPE_END",
+			"TYPE_ENTITY",
+			"TYPE_ANGLE",
+			"TYPE_VECTOR",
+			"TYPE_BOOLEAN_FALSE",
+			"TYPE_BOOLEAN_TRUE",
+			"TYPE_DOUBLE",
+			"TYPE_UINT",
+			"TYPE_USHORT",
+			"TYPE_NEGATIVE",
+			"TYPE_STRING",
+			"TYPE_TABLE",
+			"TYPE_ASSOC",
+			"TYPE_ARRAY",
+			"print",
+			", 8",
+			"tryCache",
+			"save",
+			"http://",
+			"donate",
+			"donate.",
+			"SetCommand",
+			"setInherits",
+			"SetVisible",
+			"group",
 			"extension=",
 			"extension",
 			"mysqli",
@@ -327,6 +403,28 @@
 		"regex": false,
 		"replace_history":
 		[
+			"net_Read",
+			"net_WriteString",
+			"net_WriteFloat",
+			"net_WriteDouble",
+			"net_WriteInt",
+			"net_WriteUInt",
+			"0x01 --[[TYPE_POINTER]]",
+			"0x00 --[[TYPE_END]]",
+			"0x0E --[[TYPE_ENTITY]]",
+			"0x0D --[[TYPE_ANGLE]]",
+			"0x0C --[[TYPE_VECTOR]]",
+			"0x0B --[[TYPE_BOOLEAN_FALSE]]",
+			"0x0A --[[TYPE_BOOLEAN_TRUE]]",
+			"0x09 --[[TYPE_DOUBLE]]",
+			"0x08 --[[TYPE_UINT]]",
+			"0x07 --[[TYPE_USHORT]]",
+			"0x06 --[[TYPE_NEGATIVE]]",
+			"0x05 --[[TYPE_STRING]]",
+			"0x04 --[[TYPE_TABLE]]",
+			"0x03 --[[TYPE_ASSOC]]",
+			"0x02 --[[TYPE_ARRAY]]",
+			"TYPE_ARRAY --[[TYPE_ARRAY]]"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -337,30 +435,87 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 6,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "/C/SteamLibrary/SteamApps/common/GarrysMod/garrysmod/addons/_p_modules/lua/includes/modules/path.lua",
+					"file": "lua/oc_ext/plugins/management.lua",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 331,
+						"buffer_size": 8600,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								331,
-								331
+								8074,
+								8074
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
+							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4241.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "lua/oc_ext/modules/menu/views/view_bans.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 351,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								351,
+								351
+							]
+						],
+						"settings":
+						{
 							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "lua/oc_ext/modules/menu/views/view_commands.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4290,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								620,
+								620
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -370,123 +525,146 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "lua/oc_ext/modules/menu/vgui/perms.lua",
+					"buffer": 3,
+					"file": "lua/oc_ext/modules/menu/init_sh.lua",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3541,
+						"buffer_size": 988,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1089,
-								1089
+								982,
+								982
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
-							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
-							"translate_tabs_to_spaces": false
+							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1891.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "lua/oc_ext/modules/menu/vgui_theme_cl.lua",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5510,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3575,
-								3575
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
-							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 2346.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "lua/oc_ext/modules/menu/views/view_groups.lua",
+					"buffer": 4,
+					"file": "lua/oc_ext/modules/menu/views_sv/view_bans_sv.lua",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2967,
+						"buffer_size": 441,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1240,
-								1240
+								398,
+								398
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
 							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1035.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "lua/oc/util/sourcebans_sv.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6787,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1704,
+								1704
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/C/Users/Owner/Desktop/install notes/ubuntu-mysql.md",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 63,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								17,
+								27
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Markdown/Markdown.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "lua/oc/core/group/group_cl.lua",
-					"semi_transient": true,
+					"buffer": 7,
+					"file": "lua/oc/main.lua",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1818,
+						"buffer_size": 3084,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								253,
-								261
+								1801,
+								1801
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/User/Color Highlighter/themes/myEden.tmTheme",
 							"syntax": "Packages/Sublime-GLua-Highlight-master/Lua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
-						"translation.x": 0.0,
-						"translation.y": 345.0,
+						"translation.x": -0.0,
+						"translation.y": 1260.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 7,
 					"type": "text"
 				}
 			]
@@ -498,7 +676,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 55.0
 	},
 	"layout":
 	{
@@ -564,7 +742,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 280.0,
+	"side_bar_width": 245.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

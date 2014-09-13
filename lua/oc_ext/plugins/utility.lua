@@ -59,10 +59,10 @@ end)
 ----------------------------------------------------------------
 -- Get owner                                                  --
 ----------------------------------------------------------------
-local cmd = oc.command( 'utility', 'go', function( pl )
+local cmd = oc.command( 'utility', 'get owner', function( pl )
 	local trace = pl.GetEyeTrace(pl)
 	if trace.Entity.FPPOwner then
-		oc.notify_fancy(pl, trace.Entity:GetClass() .. ' owned by: #P', trace.Entity.FPPOwner)
+		oc.notify_fancy(pl, '#S owned by: #P', trace.Entity:GetClass(), trace.Entity.FPPOwner)
 	else
 		oc.notify_fancy(pl, 'This entity has no owner')
 	end

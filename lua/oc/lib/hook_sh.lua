@@ -1,4 +1,6 @@
 oc.hook = {};
+local oc = oc;
+
 local hooks = {};
 local hook_names = {};
 
@@ -33,10 +35,25 @@ local function deleteByName(id, name)
 	end
 end
 
+function oc.hook.Call( id, ... )
+	if hooks[id] then
+		local a, b, c, d;
+		for _, fn in ipairs(hooks[id])do
+			a, b, c, d = fn(...)
+			if a then
+				return a, b, c, d;
+			end
+		end
+	end
+end
 
+local hook_Call = oc.hook.Call ;
 function oc.hook.Add( id, name, func )
 
-	if not hooks[id] then 
+	if not hooks[id] then
+		hook.Add( id, 'oc.'..id, function(...)
+			return hook_Call(id, ...);
+		end);
 		hooks[id] = {};
 	end
 
@@ -54,18 +71,6 @@ function oc.hook.Add( id, name, func )
 	dprint('ADDED HOOK: '..id..' TOTAL: '..#hooks[id]);
 
 	return func;
-end
-
-function oc.hook.Call( id, ... )
-	if hooks[id] then
-		local a, b, c, d;
-		for _, fn in ipairs(hooks[id])do
-			a, b, c, d = fn(...)
-			if a then
-				return a, b, c, d;
-			end
-		end
-	end
 end
 
 function oc.hook.DeleteAll( id )

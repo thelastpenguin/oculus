@@ -13,10 +13,21 @@ local queries = {
 	INSERT_BAN_BY_STEAMID_IP = 'INSERT INTO '..prefix..'bans (server_id,admin_id, admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, ?, \'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
 	INSERT_BAN_BY_STEAMID_CONSOLE = 'INSERT INTO '..prefix..'bans (server_id,admin_ip, steam, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', ?, ?)',
 	INSERT_BAN_BY_STEAMID_CONSOLE_IP = 'INSERT INTO '..prefix..'bans (server_id,admin_ip, steam, ip, name, reason, create_time, length) VALUES (?, \'?\', \'?\', \'?\', \'?\', \'?\', ?, ?)',
-	SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (length = 0 OR (create_time + length*60) > ?)',
+	--SELECT_UPDATED_BANS = 'SELECT * FROM '..prefix..'bans WHERE (unban_time > ? OR create_time > ?) AND (length = 0 OR (create_time + length*60) > ?)',
+	SELECT_UPDATED_BANS = ([[
+		SELECT prefix_bans.*, prefix_admins.name AS admin_name 
+		FROM prefix_bans
+		INNER JOIN prefix_admins 
+		ON prefix_bans.admin_id = prefix_admins.id
+		WHERE (prefix_bans.unban_time > ? OR prefix_bans.create_time > ?) AND 
+			(prefix_bans.length = 0 OR (prefix_bans.create_time + prefix_bans.length*60) > ?)
+	]]):gsub('prefix_', prefix);
+
 	UNBAN_BY_STEAMID_CONSOLE = 'UPDATE '..prefix..'bans SET unban_reason = \'?\', unban_time = ? WHERE id = ?',
 	UNBAN_BY_STEAMID = 'UPDATE '..prefix..'bans SET unban_admin_id = ?, unban_reason = \'?\', unban_time = ? WHERE id = ?',
 }
+
+dprint(queries.SELECT_UPDATED_BANS);
 
 local db = oc._sbdb;
 
@@ -52,7 +63,7 @@ function oc.sb.playerGetAdminId(pl, done)
 			done(data[1].id);
 			db:query_ex(queries.UPDATE_ADMIN, {oc.p(pl).uid..'-'..pl:Name(), pl:SteamID()});
 		else
-			db:query_ex(queries.INSERT_ADMIN, {pl:Name(), pl:SteamID(), os.time()}, function(data, err)
+			db:query_ex(queries.INSERT_ADMIN, {oc.p(pl).uid..'-'..pl:Name(), pl:SteamID(), os.time()}, function(data, err)
 				if err then return done() end
 				oc.sb.playerGetAdminId(pl, done);	
 			end);
@@ -128,11 +139,16 @@ end
 local lastsync = -1;
 oc.sb.bans = {};
 
+local modseq = 0;
 function oc.sb.syncBans(done)
 	dprint('syncing all bans');
 	db:query_ex(queries.SELECT_UPDATED_BANS, {lastsync, lastsync, os.time()}, function(data)
 		for _, ban in pairs(data)do
 			oc.sb.bans[ban.id] = ban;
+
+			-- modseq is used primarily for syncing bans accross network.
+			ban.modseq = modseq;
+			modseq = modseq + 1;
 		end
 		lastsync = os.time();
 		
